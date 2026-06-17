@@ -1,0 +1,12 @@
+{
+  "name": "japan-economy-model",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Japan Economy Model (日本経済モデル) - JAPAN-A_Coreマクロ経済シミュレーター",
+  "main": "core_macro_engine/simulation_runner.js",
+  "scripts": {
+    "start": "node core_macro_engine/simulation_runner.js",
+    "test": "node core_macro_engine/validation_tests.js"
+  },
+  "dependencies": {}
+}

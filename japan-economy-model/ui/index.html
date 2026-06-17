@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JAPAN-A_Coreマクロ経済複雑系シミュレーター。日本の財政政策・金融政策・実体経済の動的相互作用を完全決定論的モデルでリアルタイム可視化。">
+    <title>JAPAN-A_Core マクロ経済複雑系シミュレーター - Phase 2</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <main class="dashboard-container">
+        <!-- ヘッダーエリア -->
+        <header class="dashboard-header">
+            <h1 class="main-title">【JAPAN-A_Core v2.0】経済複雑系シミュレーター</h1>
+            <p class="subtitle">完全決定論的マクロ経済フィードバックループ・可視化エンジン</p>
+        </header>
+
+        <!-- メインコックピットエリア -->
+        <div class="cockpit-layout">
+            <!-- 左側：コントロールパネル（政策介入） -->
+            <aside class="control-panel" aria-label="政策介入コントロール">
+                <!-- 初期状態シナリオ設定パネル (t=0 Inputs) -->
+                <section class="panel-section initial-state-section">
+                    <h2 class="section-title">初期状態設定 (t=0 Inputs)</h2>
+                    <div class="control-grid">
+                        <div class="control-group-sub">
+                            <label for="input_Y0" class="sub-label">初期名目GDP (Y₀)</label>
+                            <input type="number" id="input_Y0" value="691.9" step="10" min="300" max="1000" class="input-field">
+                            <span class="unit-label">兆円</span>
+                        </div>
+                        
+                        <div class="control-group-sub">
+                            <label for="input_B0" class="sub-label">初期政府債務 (B₀)</label>
+                            <input type="number" id="input_B0" value="1145.0" step="50" min="500" max="2000" class="input-field">
+                            <span class="unit-label">兆円</span>
+                        </div>
+
+                        <div class="control-group-sub">
+                            <label for="input_pi0" class="sub-label">初期インフレ率 (π₀)</label>
+                            <input type="number" id="input_pi0" value="2.0" step="0.5" min="-5" max="15" class="input-field">
+                            <span class="unit-label">%</span>
+                        </div>
+
+                        <div class="control-group-sub">
+                            <label for="input_r0" class="sub-label">初期政策金利 (r₀)</label>
+                            <input type="number" id="input_r0" value="0.25" step="0.05" min="0" max="5" class="input-field">
+                            <span class="unit-label">%</span>
+                        </div>
+
+                        <div class="control-group-sub">
+                            <label for="input_E0" class="sub-label">初期為替レート (E₀)</label>
+                            <input type="number" id="input_E0" value="150.0" step="5" min="80" max="250" class="input-field">
+                            <span class="unit-label">円</span>
+                        </div>
+
+                        <div class="control-group-sub">
+                            <label for="input_BOJ0" class="sub-label">初期日銀国債量 (BOJ₀)</label>
+                            <input type="number" id="input_BOJ0" value="600.0" step="50" min="0" max="1200" class="input-field">
+                            <span class="unit-label">兆円</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel-section">
+                    <h2 class="section-title">政策操作パネル (Inputs)</h2>
+                    
+                    <!-- 政府支出 G -->
+                    <div class="control-group">
+                        <label for="input_G" class="control-label" data-tooltip="政府による財・サービス購入および投資のフロー（令和8年度予算ベース）。拡大すると有効需要を直接創出してGDPを押し上げますが、財政赤字の拡大と国債残高の累積を駆動します。">
+                            政府支出 (G)
+                            <span class="badge badge-emerald" id="val_G">100 兆円</span>
+                        </label>
+                        <input type="range" id="input_G" min="50" max="200" step="1" value="100" class="slider">
+                        <span class="range-hint">Min: 50 | Max: 200</span>
+                    </div>
+
+                    <!-- 税率 tau -->
+                    <div class="control-group">
+                        <label for="input_tau" class="control-label" data-tooltip="所得や企業収益等に対する課税割合。税率を上げると政府税収が増大し債務の増加を抑制しますが、可処分所得が減少して消費や投資などの民間活力を削ぐことになります。">
+                            税率 (τ)
+                            <span class="badge badge-crimson" id="val_tau">20%</span>
+                        </label>
+                        <input type="range" id="input_tau" min="0.05" max="0.50" step="0.01" value="0.20" class="slider">
+                        <span class="range-hint">Min: 5% | Max: 50%</span>
+                    </div>
+
+                    <!-- 利上げ上限 delta_r_max -->
+                    <div class="control-group">
+                        <label for="input_delta_r_max" class="control-label" data-tooltip="1期あたりに政策金利を変更できる最大幅。金利の急激な変動を抑える役割を持ち、急激な金融引き締めや緩和による実体経済へのショックを緩和します。">
+                            利上げ上限パルス (Δr max)
+                            <span class="badge badge-cyan" id="val_delta_r_max">0.25%</span>
+                        </label>
+                        <input type="range" id="input_delta_r_max" min="0.0005" max="0.01" step="0.0005" value="0.0025" class="slider">
+                        <span class="range-hint">Min: 0.05% | Max: 1.0%</span>
+                    </div>
+
+                    <!-- 目標インフレ率 pi_target -->
+                    <div class="control-group">
+                        <label for="input_pi_target" class="control-label" data-tooltip="中央銀行が目指すインフレ率。テイラー・ルールに基づく政策金利調整の基準値となり、実際のインフレ率との乖離が政策金利の変更幅に影響します。">
+                            目標インフレ率 (π target)
+                            <span class="badge badge-amber" id="val_pi_target">2.0%</span>
+                        </label>
+                        <input type="range" id="input_pi_target" min="-0.02" max="0.10" step="0.005" value="0.02" class="slider">
+                        <span class="range-hint">Min: -2% | Max: 10%</span>
+                    </div>
+
+                    <!-- 潜在GDP Y_potential -->
+                    <div class="control-group">
+                        <label for="input_Y_potential" class="control-label" data-tooltip="経済全体の供給能力の限界値（経済の器）。実際のGDPがこれを超えるとインフレ圧力となり、下回るとデフレギャップが生じます。">
+                            潜在GDP (Y*)
+                            <span class="badge badge-gray" id="val_Y_potential">500 兆円</span>
+                        </label>
+                        <input type="range" id="input_Y_potential" min="300" max="800" step="10" value="500" class="slider">
+                        <span class="range-hint">Min: 300 | Max: 800</span>
+                    </div>
+
+                    <!-- シミュレーション期間 steps -->
+                    <div class="control-group">
+                        <label for="input_steps" class="control-label" data-tooltip="シミュレーションを実行する期間（四半期単位）。期間を延ばすことで、長期的な債務の累積傾向や経済の定常状態への収束過程を観察できます。">
+                            シミュレーション期間 (ステップ)
+                            <span class="badge badge-gray" id="val_steps">120 期</span>
+                        </label>
+                        <input type="range" id="input_steps" min="30" max="240" step="10" value="120" class="slider">
+                        <span class="range-hint">Min: 30 | Max: 240</span>
+                    </div>
+
+                    <!-- 日銀国債買い入れ額 Op -->
+                    <div class="control-group">
+                        <label for="input_Op" class="control-label" data-tooltip="日本銀行による長期国債の月間買い入れオペ額。減額すると量的引き締め（QT）となり、長期金利の上昇（タームプレミアム拡大）を通じて財政規律を促しますが、政府の利払い負担を増大させ、経済にブレーキをかけます。">
+                            日銀国債買い入れ額
+                            <span class="badge badge-purple" id="val_Op">6.0 兆円/月</span>
+                        </label>
+                        <input type="range" id="input_Op" min="0" max="10" step="0.5" value="6.0" class="slider">
+                        <span class="range-hint">Min: 0 | Max: 10</span>
+                    </div>
+                </section>
+                
+                <!-- 凡例エリア -->
+                <section class="panel-section legend-section">
+                    <h3 class="section-title">観測指標 (Outputs)</h3>
+                    <ul class="legend-list">
+                        <li class="legend-item"><span class="legend-color color-gdp"></span>GDP (Y) : 🟢 エメラルド</li>
+                        <li class="legend-item"><span class="legend-color color-debt"></span>政府債務 (B) : 🔴 バーガンディ</li>
+                        <li class="legend-item"><span class="legend-color color-inflation"></span>インフレ率 (π) : 🟡 アンバー</li>
+                        <li class="legend-item"><span class="legend-color color-rate"></span>政策金利 (r) : 🔵 コバルト</li>
+                        <li class="legend-item"><span class="legend-color color-exchangerate"></span>為替レート (E) [円/ドル] : 🟣 パープル</li>
+                        <li class="legend-item"><span class="legend-color color-boj"></span>日銀国債残高 (BOJ) : 💗 マゼンタ</li>
+                    </ul>
+                </section>
+
+                <!-- データ出力エリア -->
+                <section class="panel-section export-section">
+                    <h3 class="section-title">データ出力</h3>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="btn_export_csv" class="btn-export" style="flex: 1; margin-top: 0;">CSV出力</button>
+                        <button id="btn_copy_url" class="btn-export" style="flex: 1; margin-top: 0; background: var(--solid-rate, #2b6cb0); border-color: var(--solid-rate, #2b6cb0);">リンクをコピー</button>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- 右側：キャンバスビューポート（グラフ） -->
+            <section class="viewport-panel" aria-label="経済シミュレーション可視化">
+                <div class="canvas-container">
+                    <canvas id="viewport" width="900" height="580"></canvas>
+                </div>
+                <footer class="viewport-footer">
+                    <span id="footer_time_axis">時間軸 t = 0 ~ 120 (30年間)</span>
+                    <span class="status-indicator"><span class="pulse-dot"></span> deterministic engine running</span>
+                </footer>
+            </section>
+        </div>
+    </main>
+
+    <!-- トースト通知用コンテナ -->
+    <div id="toast_notification" class="toast-notification" aria-live="polite"></div>
+
+    <!-- コントロールスクリプトのロード -->
+    <script type="module" src="app_controller.js"></script>
+</body>
+</html>
