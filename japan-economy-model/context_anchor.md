@@ -1,19 +1,20 @@
 # Context Anchor: Japan Economy Model (日本経済モデル)
 
 ### Status
-- **Phase 3.6: Math Core Calibration, Extremity Plotting Integration, & Dynamic T=0 Input Hydration** - 完了
-  - インフレ率・為替決定方程式（インフレ感応度 α=0.2、金利感応度 β=0.05）の動学較正、始点・終点近くへの指標数値の衝突回避（最小間隔12px）プロット、初期状態（t=0）の各経済指標のUI入力パネル（Hydration）の物理実装、およびコマンドライン実行時のReferenceError（policy is not defined）の解消とCSV前提条件への動的エクスポート連動が全て完了。
+- **Phase 3.6: ARE-Sandbox Architecture Migration & Math URL Integration** - 完了
+  - リポジトリ「ARE-Sandbox」構造（japan-economy-model/）への全アセットの物理移行、インポートパスの相対化リファクタリング、およびURLクエリパラメータ（Query String）による状態同期と共有リンクコピー機能（BOM付トースト通知）の実装がすべて完了。
 
 ## Architecture Outline
-- **core_macro_engine/**
-  - [macro_math.js](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/core_macro_engine/macro_math.js): 純粋なマクロ経済方程式系（日本経済実態データ適合・実質成長決定モデル版）
-  - [simulation_runner.js](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/core_macro_engine/simulation_runner.js): 初期パラメータおよび初期実態ストック・フローデータ設定、タイムステップ制御、ログ保存およびコンソール表示
-- **ui/**
-  - [index.html](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/ui/index.html): 政策介入・期間スライダー（クレンジング済）および Canvas ビューポートを備えたメインUI
-  - [dashboard.css](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/ui/dashboard.css): モダン・クリーン・スタジオテーマ（ライトテーマ）デザイン定義
-  - [app_controller.js](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/ui/app_controller.js): スライダー監視、Canvas 30ステップ時間軸、Min-Maxインジケータ描画の統括
+- **japan-economy-model/**
+  - [macro_math.js](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/japan-economy-model/core_macro_engine/macro_math.js): 純粋なマクロ経済方程式系（日本経済実態データ適合・実質成長決定モデル版）
+  - [simulation_runner.js](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/japan-economy-model/core_macro_engine/simulation_runner.js): 初期パラメータおよび初期実態ストック・フローデータ設定、タイムステップ制御、ログ保存およびコンソール表示
+  - **ui/**
+    - [index.html](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/japan-economy-model/ui/index.html): 政策介入・期間スライダー（クレンジング済）および Canvas ビューポートを備えたメインUI
+    - [dashboard.css](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/japan-economy-model/ui/dashboard.css): モダン・クリーン・スタジオテーマ（ライトテーマ）デザイン定義
+    - [app_controller.js](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/japan-economy-model/ui/app_controller.js): スライダー監視、Canvas 30ステップ時間軸、Min-Maxインジケータ描画の統括
 - **Root Configuration**
-  - [package.json](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/package.json): ES Modulesの有効化設定
+  - [package.json](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/japan-economy-model/package.json): ES Modulesの有効化設定
+  - [README.md](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/README.md): リポジトリ全体の説明ドキュメント (ARE-Sandbox)
 
 ## Phase Synchronization Logs
 - **Phase 0: Project Initialization** - 完了
@@ -64,3 +65,8 @@
   - `app_controller.js` で Canvas 折れ線始点（t=0）と終点（t=末尾）の直接数値プロットに対して、Y座標ソートと均等双方向退避（最大15回反復）を組み合わせた「動的衝突回避アルゴリズム（最小間隔12px）」を適用。
   - UI に初期状態（t=0）入力フォーム（GDP、債務、インフレ率、政策金利、為替、日銀保有量）を物理実装し、変更検知時に `getHydratedInitialState` による動的連動 Hydration 処理をフック。
   - `simulation_runner.js` の直接実行ブロックでの ReferenceError を解消し、動的初期状態 `results[0]` に基づくCSV前提条件エクスポートロジックを統合。
+- **Phase 3.6 - ARE-Sandbox Architecture Migration & Math URL Integration** - 完了
+  - プロジェクト全体のファイルを新設の `japan-economy-model/` フォルダ配下に移行し、アセットおよびモジュールの参照（HTML, JS）を絶対パスから相対パスに完全リファクタリング。
+  - `app_controller.js` 内で `URLSearchParams` を用いて、URLクエリ文字列からスライダーと初期状態入力フォームの設定値を起動時に自動復元する同期ハイドレーション機能を物理マウント。
+  - UIの「データ出力」エリアに「共有リンクをコピー」ボタンを追加し、現在の全パラメータ値から完全なクエリURLを自動生成してコピーする処理（およびトーストとボタン変化フィードバック）をマウント。
+  - 移行と実装の完了後、ローカルテスト合格を確認したうえで `git init` から GitHub 公開ブランチ（`main`）へのコミット・自動プッシュ（GitHub Pagesへの定着）を完遂。
