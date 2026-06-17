@@ -1,8 +1,9 @@
 # Context Anchor: Japan Economy Model (日本経済モデル)
 
 ### Status
-- **Phase 3.6: ARE-Sandbox Architecture Migration & Math URL Integration** - 完了
-  - リポジトリ「ARE-Sandbox」構造（japan-economy-model/）への全アセットの物理移行、インポートパスの相対化リファクタリング、およびURLクエリパラメータ（Query String）による状態同期と共有リンクコピー機能（BOM付トースト通知）の実装がすべて完了。
+- **Phase 3.7: Creator Registry of "ARE-Sandbox" Official Documentation (README.md)** - 完了
+  - ネット上での建設的かつ客観的な政策議論の前提（学術的背景、SFCモデル、タームプレミアム、借り換え平滑化、PPP/UIP等）を共有・統一するための公式解説書（`README.md`）をリポジトリルートおよびプロジェクトフォルダ内に物理生成。LaTeX表記のクレンジング処理を施し、Gitへのコミット＆プッシュ（一回目）を完了。
+
 
 ## Architecture Outline
 - **japan-economy-model/**
@@ -70,3 +71,9 @@
   - `app_controller.js` 内で `URLSearchParams` を用いて、URLクエリ文字列からスライダーと初期状態入力フォームの設定値を起動時に自動復元する同期ハイドレーション機能を物理マウント。
   - UIの「データ出力」エリアに「共有リンクをコピー」ボタンを追加し、現在の全パラメータ値から完全なクエリURLを自動生成してコピーする処理（およびトーストとボタン変化フィードバック）をマウント。
   - 移行と実装の完了後、ローカルテスト合格を確認したうえで `git init` から GitHub 公開ブランチ（`main`）へのコミット・自動プッシュ（GitHub Pagesへの定着）を完遂。
+- **Phase 3.7: Creator Registry of "ARE-Sandbox" Official Documentation (README.md)** - 完了
+  - 議論の空中戦を調停し前提条件を完全同期するための公式解説書 `README.md` を新規作成（リポジトリルートおよび `japan-economy-model/` 内へ同期マウント）。
+  - SFCモデル、市場分断仮説、国債借り換え遷移モデル、PPP/UIP為替動学といった数理・経済学的背景を詳細に記述。
+  - LaTeX 生コード（インライン `$`）を排除・クレンジング処理し、マークダウン標準の数式ブロック `$$ ... $$` やインラインコードに調整。
+  - コミットメッセージ `docs: README.md 公式解説ドキュメント（前提共有防壁）の創出マウント` で GitHub リモートへのコミット＆プッシュを一発完遂。
+
