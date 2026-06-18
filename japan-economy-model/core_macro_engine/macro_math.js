@@ -1,6 +1,12 @@
 // policyInputs: { G: 100, tau: 0.2, delta_r_max: 0.0025, pi_target: 0.02, Y_potential: 500 }
 // prevState: { Y: 691.9, B: 1145.0, T: 83.7, G_soc: 39.1, G_other: 51.9, B_boj: 588.4, J_pos: 543.6, pi: 0.02, r: 0.0025, R: 0.03, delta_Y: 0 }
 
+// マクロ経済エンジンの数理設定 (流動性の罠など)
+const settings = {
+    inflationThreshold: 0.005,   // 流動性の罠を判定するインフレ閾値 (0.5%)
+    liquidityTrapDamping: 0.15   // 流動性の罠発生時の投資刺激減衰係数 (15%)
+};
+
 /**
  * 毎ステップ、日本の財政政策・金融政策・実体経済の動的相互作用を更新する関数（日本経済実態データ適合＆実質成長決定モデル版）
  * @param {Object} prevState 前ステップのマクロ経済状態
@@ -83,9 +89,23 @@ export function updateMacroState(prevState, policyInputs) {
     const Y = Y_real_next * (1 + pi);
     const delta_Y = Y - prevState.Y;
 
-    // 実体経済内訳（UI側の描画互換用：消費 C は名目GDPの約55%、投資 I は約20%とし、金利上昇による下押しを反映）
+    // 実体経済内訳（UI側の描画互換用：消費 C は名目GDPの約55%、投資 I は約20%とし、金利変動影響を反映）
     const C = Y * 0.55;
-    const I = Y * (0.20 - 0.5 * Math.max(0, R - R_initial));
+    
+    // 流動性の罠の動的判定 (インフレ率が閾値 0.5% を下回っているか)
+    const isLiquidityTrap = pi < settings.inflationThreshold;
+    const interestDiff = R - R_initial;
+    let investmentEffect = 0;
+    
+    if (interestDiff >= 0) {
+        // 金利上昇による投資下押しペナルティ
+        investmentEffect = -0.5 * interestDiff;
+    } else {
+        // 金利低下による投資刺激（流動性の罠発生時は刺激効果を15%に減衰）
+        const baseStimulus = -0.5 * interestDiff; // プラス値
+        investmentEffect = isLiquidityTrap ? baseStimulus * settings.liquidityTrapDamping : baseStimulus;
+    }
+    const I = Y * (0.20 + investmentEffect);
 
     // 5. 財政ドメイン (税収 T, 歳出, 国債残高 B) の動的計算
     // 税収 (実効税率にGDPを乗算)
