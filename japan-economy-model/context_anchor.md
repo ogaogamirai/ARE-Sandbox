@@ -21,7 +21,7 @@
 - **Phase 0: Project Initialization** - 完了
   - 新規プロジェクトフォルダ [Japan-Economy-Model](file:///c:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model) の作成と初期ドキュメントの配置。
 - **Phase 1: Macro Core Implementation** - 完了
-  - `package.json`、`macro_math.js`、`simulation_runner.js` の実装。120ステップのシミュレーション検証の実施と決定論的な挙動の確認。
+  - `package.json`、`macro_math.js`、`simulation_runner.js` の実装。120ステップのシミュレーション検証の実施と挙動の確認。
 - **Phase 2: UI Mount & Dynamic Rendering** - 完了
   - コックピットUI（`ui/`）の物理実装。スライダーの入力をフックして数理エンジンを再実行し、Canvas 上に折れ線グラフを瞬時に再描画する仕組みを確立。
 - **Phase 2.1: UI Refinement & Aesthetic Transformation** - 完了

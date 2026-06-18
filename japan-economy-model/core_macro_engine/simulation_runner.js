@@ -126,7 +126,7 @@ if (process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWi
     const t0 = results[0];
 
     let csvContent = "";
-    csvContent += "JAPAN-A_Core マクロ経済複雑系シミュレーション結果\n";
+    csvContent += "JAPAN-A_Core マクロ経済シミュレーション結果\n";
     csvContent += `エクスポート日時,${formattedDate}\n`;
     csvContent += "[前提条件 (Inputs)]\n";
     csvContent += "項目,設定値,単位,実態適合スケーリング後/説明\n";
