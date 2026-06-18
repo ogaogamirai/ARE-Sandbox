@@ -1,8 +1,8 @@
 # Context Anchor: Japan Economy Model (日本経済モデル)
 
 ### Status
-- **Phase 3.7: BOJ Asset Amortization Calibration & Spec and README Creation** - 完了
-  - 日銀国債自然償還を残高依存モデルに較正し枯渇バグを解決。公式解説書（`README.md`）と数理設計仕様書（`design_specification.md`）を新規作成して双方のアクセスボタンをUIヘッダーに配置。シミュレーション期間の初期デフォルト値を30（7.5年）に適合完了。
+- **Phase 3.8: README.md Optimization & Argument Defense Layer** - 完了
+  - ネット上での建設的な政策対話・ディベートにおける信認性を高め、不要な批判や突っ込みを防ぐための「時間軸定義」および「感応度パラメータ解釈」の学術的・構造的防壁文言を、README.mdおよび設計仕様書へマウント完了。
 
 
 ## Architecture Outline
@@ -78,3 +78,8 @@
   - シミュレーターUI（`ui/index.html`）のヘッダー部分に「📖 公式解説書 (README)」ボタンの隣に「📐 数理設計仕様書」への直接ジャンプリンクボタンを追加マウント。
   - シミュレーターのデフォルト期間初期値を120期から30期（7.5年）に変更し、UI初期状態およびCLI runnerのデフォルト値（30）を一貫性を持って同期較正。
   - 指定コミットメッセージ `docs: Phase 3.7 - BOJ Amortization Calibrated & README.md Creator Registry integrated` で GitHub リモートへのコミット＆プッシュを完遂。
+- **Phase 3.8: README.md Optimization & Argument Defense Layer** - 完了
+  - `README.md` の主要指標セクションにおいて、日銀国債買い入れ額（Op）の説明に「1ステップ（1期）＝3ヶ月（四半期）」であり、月間設定値を3倍してストックへ反映している時間軸定義の補足（クレンジング済）を追加。
+  - `README.md` および `design_specification.md` の限界セクションに、各種感応度パラメータが絶対的精度ではなく構造的因果関係（前提）の共有に主眼を置いた近似値である旨を示す「マクロ感応度パラメータに関する注意点（学術防壁）」をマウント。
+  - 指定コミットメッセージ `docs: README.md, design_specification.md の時間軸定義および感応度解釈の防壁補強マウント（Phase 3.8）` にて、GitHubリモート main ブランチへのプッシュを完遂。
+
