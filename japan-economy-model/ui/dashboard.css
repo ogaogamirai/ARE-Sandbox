@@ -59,8 +59,45 @@ body {
     border-bottom: 1px solid var(--panel-border);
     padding-bottom: 16px;
     display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.header-titles {
+    display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.btn-readme {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-readme:hover {
+    background-color: #f7f6f3;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .main-title {
