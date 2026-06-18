@@ -1,8 +1,8 @@
 # Context Anchor: Japan Economy Model (日本経済モデル)
 
 ### Status
-- **Phase 3.7: Creator Registry of "ARE-Sandbox" Official Documentation (README.md) & Link Integration** - 完了
-  - ネット上での建設的な政策議論の前提を共有するための公式解説書（`README.md`）を生成。さらにシミュレーターUIのヘッダー部に解説書（README）への直接リンクボタンをマウントし、検証のアクセシビリティを最大化。
+- **Phase 3.7: BOJ Asset Amortization Calibration & Creator Registry of Official Documentation (README.md)** - 完了
+  - 日銀保有国債の自然償還（Redeem）を残高に比例して減衰する動学モデル（40/600=0.06667）に較正し、量的引き締め時の枯渇バグを解決。さらに公式取扱説明書（README.md）を更新・マウントし、GitHubへのプッシュを完了。
 
 
 ## Architecture Outline
@@ -71,9 +71,8 @@
   - `app_controller.js` 内で `URLSearchParams` を用いて、URLクエリ文字列からスライダーと初期状態入力フォームの設定値を起動時に自動復元する同期ハイドレーション機能を物理マウント。
   - UIの「データ出力」エリアに「共有リンクをコピー」ボタンを追加し、現在の全パラメータ値から完全なクエリURLを自動生成してコピーする処理（およびトーストとボタン変化フィードバック）をマウント。
   - 移行と実装の完了後、ローカルテスト合格を確認したうえで `git init` から GitHub 公開ブランチ（`main`）へのコミット・自動プッシュ（GitHub Pagesへの定着）を完遂。
-- **Phase 3.7: Creator Registry of "ARE-Sandbox" Official Documentation (README.md) & Link Integration** - 完了
-  - 議論の空中戦を調停し前提条件を完全同期するための公式解説書 `README.md` を新規作成（リポジトリルートおよび `japan-economy-model/` 内へ同期マウント）。
-  - SFCモデル、市場分断仮説、国債借り換え遷移モデル、PPP/UIP為替動学といった数理・経済学的背景を詳細に記述。
-  - LaTeX 生コード（インライン `$`）を排除・クレンジング処理し、マークダウン標準の数式ブロック `$$ ... $$` やインラインコードに調整。
-  - シミュレーターUI（`ui/index.html`）のヘッダー部分を横並び（Row）構成に拡張し、GitHub上の解説書（README）へ直接ジャンプできる「📖 公式解説書 (README)」ボタンを設置。レスポンシブ用の折り返し（wrap）設計もマウント。
-  - コミットメッセージ `docs: README.md 公式解説ドキュメント（前提共有防壁）の創出マウント` で GitHub リモートへのコミット＆プッシュを完遂。
+- **Phase 3.7: BOJ Asset Amortization Calibration & Creator Registry of Official Documentation (README.md)** - 完了
+  - `macro_math.js` における日銀国債自然償還（`Redeem`）を固定フローから残高依存型に較正。減衰率係数 $0.06667$ を用い、残高が減衰するにつれて償還フローもマイルド化して4年後に400兆円台へ美しく収束する一貫性を確立。
+  - 議論の空中戦を調停し前提条件を完全同期するための公式解説書 `README.md` を新規作成（リポジトリルートおよび `japan-economy-model/` 内へ同期マウント）。SFCモデル、タームプレミアム、借り換え遷移ヤコビアン平滑化、PPP/UIP為替動学といった数理・経済学的背景を詳細に記述。
+  - シミュレーターUI（`ui/index.html`）のヘッダー部分に、GitHub上の解説書（README）へ直接ジャンプできる「📖 公式解説書 (README)」ボタンを設置（レスポンシブRowレイアウト設計）。
+  - 指定コミットメッセージ `docs: Phase 3.7 - BOJ Amortization Calibrated & README.md Creator Registry integrated` で GitHub リモートへのコミット＆プッシュを完遂。

@@ -28,10 +28,12 @@ export function updateMacroState(prevState, policyInputs) {
     const B_Y_ratio = prevState.B / prevState.Y;
     const base_ratio = 1145.0 / 691.9; // 初期対GDP比率 約1.6548
 
-    // 日銀保有国債の動学的更新 (四半期ステップ換算)
+    // 日銀保有国債の動学的更新 (残高依存型自然償還モデルに較正)
     const Op = policyInputs.Op !== undefined ? policyInputs.Op : 6.0;
-    const Redeem = 70.0; // 年間償還額 70兆円
-    const B_boj_next = Math.max(0, (prevState.B_boj !== undefined ? prevState.B_boj : 588.4) + (Op * 3) - 17.5);
+    const BOJ_current = prevState.B_boj !== undefined ? prevState.B_boj : 588.4;
+    // 初期残高600兆円に対し初期償還フローが40兆円/期である実態ファクトから、減衰率係数 40/600 ≒ 0.06667 を適用
+    const Redeem_flow = BOJ_current * 0.06667;
+    const B_boj_next = Math.max(0, BOJ_current + (Op * 3) - Redeem_flow);
 
     // 市場流通国債比率 (量的緩和/引き締め) に基づくタームプレミアム (感応度 delta = 0.05)
     const market_share = (prevState.B - (prevState.B_boj !== undefined ? prevState.B_boj : 588.4)) / prevState.B;
