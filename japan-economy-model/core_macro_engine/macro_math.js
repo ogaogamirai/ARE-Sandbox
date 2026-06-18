@@ -39,15 +39,40 @@ export function updateMacroState(prevState, policyInputs) {
     const BOJ_current = prevState.B_boj !== undefined ? prevState.B_boj : 588.4;
     // 初期残高600兆円に対し初期償還フローが40兆円/期である実態ファクトから、減衰率係数 40/600 ≒ 0.06667 を適用
     const Redeem_flow = BOJ_current * 0.06667;
-    const B_boj_next = Math.max(0, BOJ_current + (Op * 3) - Redeem_flow);
+    // 日銀保有国債が総国債残高を超えないよう prevState.B で上限処理
+    const B_boj_next = Math.max(0, Math.min(prevState.B, BOJ_current + (Op * 3) - Redeem_flow));
 
     // 市場流通国債比率 (量的緩和/引き締め) に基づくタームプレミアム (感応度 delta = 0.05)
     const market_share = (prevState.B - (prevState.B_boj !== undefined ? prevState.B_boj : 588.4)) / prevState.B;
     const initial_share = 556.6 / 1145.0; // 約 0.4861135
     const term_premium = 0.0275 + 0.05 * (market_share - initial_share);
 
-    // 【堅牢性設計】金利の無限発散によるオーバーフローを防ぐため、リスクプレミアムに双曲線正接（tanh）を用いた飽和モデルを導入。
-    const R = Math.max(prevState.r, prevState.r + term_premium + 0.08 * Math.tanh(0.3 * (B_Y_ratio - base_ratio)));
+    // 1. BOJ減少率および政府国債減少の監視機構
+    const boj_decrease = prevState.B_boj !== undefined ? Math.max(0, prevState.B_boj - B_boj_next) : 0;
+    
+    // 政府国債減少速度の概算（プライマリーバランスと前回の利払いによる歳出・税収予測）
+    const G_soc_temp = 39.1;
+    const G_other_temp = G_policy - G_soc_temp;
+    const interest_temp = prevState.interest_payment !== undefined ? prevState.interest_payment : prevState.B * ((1 - 0.03) * R_init + 0.03 * (prevState.R !== undefined ? prevState.R : 0.03));
+    const boj_interest_temp = J_pos * prevState.r;
+    const total_spending_temp = G_soc_temp + G_other_temp + interest_temp + boj_interest_temp;
+    const T_temp = policyInputs.tau * prevState.Y * tax_adjustment;
+    const new_debt_temp = total_spending_temp - T_temp;
+    const debt_decrease = Math.max(0, -new_debt_temp * 0.25);
+
+    // 2. 市場流動性プレミアムの計算と危機判定
+    // BOJ減少が32.0兆円（月2兆円以下のオペ相当）を超えるか、政府の債務減少が15兆円を超える場合に流動性リスク発火
+    const is_liquidity_crisis = (boj_decrease > 32.0) || (debt_decrease > 15.0);
+    
+    // 3. 不規則な金利スパイク（暴走）の物理定着
+    let liquidity_spike = 0.0;
+    if (is_liquidity_crisis) {
+        const step = prevState.step !== undefined ? prevState.step : 1;
+        liquidity_spike = 0.04 + 0.02 * Math.abs(Math.sin(step * 1.5));
+    }
+
+    // 【堅牢性設計】金利の無限発散によるオーバーフローを防ぐため、リスクプレミアムに双曲線正接（tanh）を用いた飽和モデルを導入。不規則な流動性スパイクを加算。
+    const R = Math.max(prevState.r, prevState.r + term_premium + 0.08 * Math.tanh(0.3 * (B_Y_ratio - base_ratio)) + liquidity_spike);
 
     // 3. 為替ドメイン (購買力平価説と金利平価説に基づく動学モデル)
     const E_prev = prevState.USDJPY !== undefined ? prevState.USDJPY : 150.0;
@@ -81,16 +106,36 @@ export function updateMacroState(prevState, policyInputs) {
 
     // 高インフレと高金利が実質消費・投資を冷え込ませる実質成長率のペナルティ関数
     const R_initial = 0.03;
-    const g_real = 0.01 - 0.08 * Math.max(0, pi - 0.02) - 0.05 * Math.max(0, R - R_initial);
+    
+    // 前期需要によるフィードバック（SFC乗数効果）
+    const prevState_G_policy = prevState.G_policy !== undefined ? prevState.G_policy : 91.0;
+    const C_prev = prevState.C !== undefined ? prevState.C : 380.5;
+    const I_prev = prevState.I !== undefined ? prevState.I : 138.4;
+    const AD_prev = C_prev + I_prev + prevState_G_policy;
+    const demand_gap = (AD_prev - 609.9) / 609.9;
+    const demand_sensitivity = 0.12; // 需要フィードバック感応度
+    // 供給制約と発散防止のための非対称クランプ（景気過熱による実質成長の上限は+2.5%に抑制、デフレ下振れは-6%まで許容）
+    const demand_effect = Math.max(-0.06, Math.min(0.025, demand_sensitivity * demand_gap));
+    
+    const g_real = 0.01 + demand_effect - 0.08 * Math.max(0, pi - 0.02) - 0.05 * Math.max(0, R - R_initial);
 
     // 【堅牢性設計】実質GDPを実質成長率で更新し、それにインフレ率を乗じることで名目GDPを決定
-    // これにより名目成長率式の累積による自己発散・無限オーバーフロー（NaN）を根絶
-    const Y_real_next = Y_real * (1 + g_real);
+    // これにより名目成長率式の累積による自己発散・無限オーバーフロー（NaN）を根絶。GDPの崩壊（負値やゼロ）を防ぐため下限を10.0兆円に制限。
+    const Y_real_next = Math.max(10.0, Y_real * (1 + g_real));
     const Y = Y_real_next * (1 + pi);
     const delta_Y = Y - prevState.Y;
 
-    // 実体経済内訳（UI側の描画互換用：消費 C は名目GDPの約55%、投資 I は約20%とし、金利変動影響を反映）
-    const C = Y * 0.55;
+    // 先に税収 T を計算（可処分所得の計算に必要）
+    // 税収 (実効税率にGDPを乗算)
+    const T = policyInputs.tau * Y * tax_adjustment;
+
+    // 民間可処分所得 (Yd) の定義: 政府支出の増減 delta_G がダイレクトに連動
+    const delta_G = G_policy - 91.0;
+    const Yd = Math.max(0, Y - T + delta_G);
+
+    // 消費関数 (C) の神経接続: 可処分所得に依存 (初期値適合消費性向 c = 0.6256)
+    const c = 0.6256;
+    const C = c * Yd;
     
     // 流動性の罠の動的判定 (インフレ率が閾値 0.5% を下回っているか)
     const isLiquidityTrap = pi < settings.inflationThreshold;
@@ -108,8 +153,6 @@ export function updateMacroState(prevState, policyInputs) {
     const I = Y * (0.20 + investmentEffect);
 
     // 5. 財政ドメイン (税収 T, 歳出, 国債残高 B) の動的計算
-    // 税収 (実効税率にGDPを乗算)
-    const T = policyInputs.tau * Y * tax_adjustment;
     
     // 国債費（国債借り換え動学・ヤコビアン平滑化モデル：lambda=0.03）
     const lambda = 0.03;
@@ -130,7 +173,7 @@ export function updateMacroState(prevState, policyInputs) {
     const B = prevState.B + new_debt_issued * 0.25;
 
     // 民間保有国債 (統合政府のネット負債)
-    const B_private = Math.max(0, B - B_boj_next);
+    const B_private = B - B_boj_next;
 
     // 6. テイラー・ルールによる政策金利決定
     const phi_pi = 1.5;
@@ -154,6 +197,7 @@ export function updateMacroState(prevState, policyInputs) {
         pi, r: r_next, delta_Y,
         R, USDJPY, B_boj: B_boj_next, J_pos, B_private,
         interest_payment, boj_interest_payment,
-        R_initial: R_init, E_initial: E_init
+        R_initial: R_init, E_initial: E_init,
+        G_policy
     };
 }
