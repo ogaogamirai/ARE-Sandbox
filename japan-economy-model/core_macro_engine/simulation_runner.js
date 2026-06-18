@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
  * @param {Object} [initialState=null] カスタム初期状態
  * @returns {Array<Object>} 各ステップ of 時系列データ
  */
-export function runSimulation(steps = 120, initialPolicy = null, initialState = null) {
+export function runSimulation(steps = 30, initialPolicy = null, initialState = null) {
     const defaultPolicy = {
         G: 100,            // UI基準値 (内部でスケーリングされて G_policy = 91.0兆円)
         tau: 0.2,          // UI基準税率 (内部で実効適合されて 初期歳入83.7兆円)
@@ -87,7 +87,7 @@ if (process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWi
         delta_Y: 0
     };
 
-    const results = runSimulation(120, policy, initialState);
+    const results = runSimulation(30, policy, initialState);
 
     // 最初の10ステップ（t=0〜10）をJSON形式でコンソール出力
     console.log("\n--- シミュレーション結果 (最初の10ステップ: JSON形式) ---");
@@ -144,7 +144,7 @@ if (process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWi
     csvContent += `目標インフレ率(pi_target),${(policy.pi_target * 100).toFixed(1)},%,中央銀行 of Japan の政策金利調整基準インフレ目標\n`;
     csvContent += `潜在GDP(Y_potential),${policy.Y_potential},兆円,実態適合スケーリング後: ${(policy.Y_potential * (691.9 / 500)).toFixed(1)} 兆円 (供給側上限)\n`;
     csvContent += `日銀国債買い入れ額(Op),${policy.Op.toFixed(1)},兆円/月,量的金融政策 (QT/QEの境界は 3.0 兆円/月)\n`;
-    csvContent += `シミュレーション期間(steps),120,期,1期=四半期 (合計: 30.0 年間)\n`;
+    csvContent += `シミュレーション期間(steps),${results.length - 1},期,1期=四半期 (合計: ${((results.length - 1) / 4).toFixed(1)} 年間)\n`;
     csvContent += "\n";
     
     csvContent += "[シミュレーション時系列データ (Outputs)]\n";

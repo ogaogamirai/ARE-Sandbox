@@ -114,7 +114,7 @@ function initCanvas() {
 }
 
 // シミュレーション計算
-function calculateSimulation(policy, steps = 120) {
+function calculateSimulation(policy, steps = 30) {
     let state = getHydratedInitialState();
     const history = [];
     history.push({ step: 0, ...state });

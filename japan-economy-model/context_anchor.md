@@ -2,7 +2,7 @@
 
 ### Status
 - **Phase 3.7: BOJ Asset Amortization Calibration & Spec and README Creation** - 完了
-  - 日銀国債自然償還を残高依存モデルに較正し枯渇バグを解決。公式取扱説明書（`README.md`）の更新マウントに加え、各政策パラメータの伝播経路や差分方程式系を完全網羅した「数理設計仕様書（`design_specification.md`）」を新規作成・定着。
+  - 日銀国債自然償還を残高依存モデルに較正し枯渇バグを解決。公式解説書（`README.md`）と数理設計仕様書（`design_specification.md`）を新規作成して双方のアクセスボタンをUIヘッダーに配置。シミュレーション期間の初期デフォルト値を30（7.5年）に適合完了。
 
 
 ## Architecture Outline
@@ -75,5 +75,6 @@
   - `macro_math.js` における日銀国債自然償還（`Redeem`）を固定フローから残高依存型に較正。減衰率係数 $0.06667$ を用い、残高が減衰するにつれて償還フローもマイルド化して4年後に400兆円台へ美しく収束する一貫性を確立。
   - 議論の空中戦を調停し前提条件を完全同期するための公式解説書 `README.md` を新規作成（リポジトリルートおよび `japan-economy-model/` 内へ同期マウント）。SFCモデル、タームプレミアム、借り換え遷移ヤコビアン平滑化、PPP/UIP為替動学といった数理・経済学的背景を詳細に記述。
   - シミュレーターの全変数および政策パラメータの因果伝播・差分方程式系を数理的に完全整理した「数理設計仕様書（`design_specification.md`）」を `japan-economy-model/` 直下に新規マウント。
-  - シミュレーターUI（`ui/index.html`）のヘッダー部分に、GitHub上の解説書（README）へ直接ジャンプできる「📖 公式解説書 (README)」ボタンを設置（レスポンシブRowレイアウト設計）。
+  - シミュレーターUI（`ui/index.html`）のヘッダー部分に「📖 公式解説書 (README)」ボタンの隣に「📐 数理設計仕様書」への直接ジャンプリンクボタンを追加マウント。
+  - シミュレーターのデフォルト期間初期値を120期から30期（7.5年）に変更し、UI初期状態およびCLI runnerのデフォルト値（30）を一貫性を持って同期較正。
   - 指定コミットメッセージ `docs: Phase 3.7 - BOJ Amortization Calibrated & README.md Creator Registry integrated` で GitHub リモートへのコミット＆プッシュを完遂。

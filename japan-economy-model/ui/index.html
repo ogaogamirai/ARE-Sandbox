@@ -16,8 +16,11 @@
                 <p class="subtitle">マクロ経済フィードバックループ・可視化エンジン</p>
             </div>
             <div class="header-actions">
-                <a href="https://github.com/ogaogamirai/ARE-Sandbox/tree/main/japan-economy-model#readme" target="_blank" rel="noopener noreferrer" class="btn-readme">
+                <a href="https://github.com/ogaogamirai/ARE-Sandbox/tree/main/japan-economy-model#readme" target="_blank" rel="noopener noreferrer" class="btn-readme" style="margin-right: 10px;">
                     <span>📖 公式解説書 (README)</span>
+                </a>
+                <a href="https://github.com/ogaogamirai/ARE-Sandbox/blob/main/japan-economy-model/design_specification.md" target="_blank" rel="noopener noreferrer" class="btn-readme">
+                    <span>📐 数理設計仕様書</span>
                 </a>
             </div>
         </header>
@@ -125,9 +128,9 @@
                     <div class="control-group">
                         <label for="input_steps" class="control-label" data-tooltip="シミュレーションを実行する期間（四半期単位）。期間を延ばすことで、長期的な債務の累積傾向や経済の定常状態への収束過程を観察できます。">
                             シミュレーション期間 (ステップ)
-                            <span class="badge badge-gray" id="val_steps">120 期</span>
+                            <span class="badge badge-gray" id="val_steps">30 期</span>
                         </label>
-                        <input type="range" id="input_steps" min="30" max="240" step="10" value="120" class="slider">
+                        <input type="range" id="input_steps" min="30" max="240" step="10" value="30" class="slider">
                         <span class="range-hint">Min: 30 | Max: 240</span>
                     </div>
 
@@ -171,7 +174,7 @@
                     <canvas id="viewport" width="900" height="580"></canvas>
                 </div>
                 <footer class="viewport-footer">
-                    <span id="footer_time_axis">時間軸 t = 0 ~ 120 (30年間)</span>
+                    <span id="footer_time_axis">時間軸 t = 0 ~ 30 (7.5年間)</span>
                     <span class="status-indicator"><span class="pulse-dot"></span> simulation engine running</span>
                 </footer>
             </section>
