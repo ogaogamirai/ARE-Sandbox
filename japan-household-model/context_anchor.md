@@ -10,17 +10,17 @@
 ## Architecture Outline
 
 ```text
-C:\Users\ogaog\.antigravity\Nova\workspace\Japan-Household-Model/
-├── README.md               # ユーザー向け基本解説書
-├── design_specification.md  # 数理方程式系およびハイドレーション設計書
-├── context_anchor.md       # [本ファイル] 同期用アンカー・進捗履歴
-├── japan-household-model/
-│   └── ui/
-│       ├── index.html      # シミュレーターUI (HTML)
-│       ├── index.css       # デザインシステム・スタイル (CSS)
-│       └── main.js         # 計算エンジンおよびUIチャート連動スクリプト (JS)
-└── scratch/                # 施工前/施工後検証用スクリプト
-    └── test_engine.js      # ドライラン動作検証用スクリプト
+C:\Users\ogaog\.antigravity\Nova\workspace\Japan-Economy-Model/ (リポジトリルート)
+├── README.md               # [既存] マクロ経済シミュレーター解説書
+├── japan-economy-model/    # [既存] マクロ経済モデル本体
+└── japan-household-model/  # [新設] 今回追加したフォルダ
+    ├── README.md           # 国民生活モデル解説書
+    ├── design_specification.md # 数理設計仕様書
+    ├── context_anchor.md   # [本ファイル] 同期用アンカー・進捗履歴
+    └── ui/
+        ├── index.html      # シミュレーターUI (HTML)
+        ├── index.css       # デザインシステム・スタイル (CSS)
+        └── main.js         # 計算エンジンおよびUIチャート連動スクリプト (JS)
 ```
 
 ---
@@ -54,3 +54,7 @@ C:\Users\ogaog\.antigravity\Nova\workspace\Japan-Household-Model/
 - [x] **Phase 4: Verification**
   - 30期までの計算安定性検証。
   - 金利ペナルティ、価格転嫁効果のトランスミッションメカニズム動作監査。
+- [x] **Phase 5: Layout & Scale Optimization**
+  - PCブラウザなどの大画面において、ダッシュボード全体が1画面（スクロールなし）に収まるようCSS配置を最適化。
+  - `.main-content` のフレックスタイポの修正および `canvas` の `flex: 1` 伸縮設定により、Chart.js が自動スケールして画面からはみ出さないように対応。
+  - 画面幅1200px以下のデバイスにおけるレスポンシブスクロール表示への自動切り替えをサポート。
