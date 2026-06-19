@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAPAN-A_Living 国民生活・雇用影響シミュレーター</title>
+    <!-- Google Fonts Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- サイドバー: パラメータコントロール -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">JAPAN-A_Living</div>
+                <div class="subtitle">v1.0.0 "Living/Household"</div>
+            </div>
+
+            <nav class="control-panel">
+                <!-- マクロ経済ベースシナリオ設定 -->
+                <section class="control-section">
+                    <h3>マクロ経済シナリオ設定</h3>
+                    <div class="control-group">
+                        <label for="macro-scenario">基本シナリオ</label>
+                        <select id="macro-scenario">
+                            <option value="baseline">標準シナリオ (低金利・緩やかなインフレ)</option>
+                            <option value="high-inflation">高インフレ円安シナリオ</option>
+                            <option value="interest-rise">日銀利上げ・金利上昇シナリオ</option>
+                            <option value="stagflation">スタグフレーション (ゼロ成長・物価高)</option>
+                        </select>
+                    </div>
+                </section>
+
+                <!-- 家計・賃金政策 -->
+                <section class="control-section">
+                    <h3>家計・賃金政策</h3>
+                    <div class="control-group">
+                        <div class="label-val">
+                            <label for="slider-pass">中小企業価格転嫁率</label>
+                            <span id="val-pass" class="badge">50%</span>
+                        </div>
+                        <input type="range" id="slider-pass" min="0" max="1" step="0.05" value="0.5">
+                        <div class="range-hint">0%: 転嫁困難 (格差拡大) ➔ 100%: 完全転嫁</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="label-val">
+                            <label for="slider-mw">最低賃金引上げ幅 (年率)</label>
+                            <span id="val-mw" class="badge">3.0%</span>
+                        </div>
+                        <input type="range" id="slider-mw" min="0" max="0.1" step="0.005" value="0.03">
+                        <div class="range-hint">引き上げは底辺所得を押し上げるが壁に影響</div>
+                    </div>
+                </section>
+
+                <!-- 社会保障・税制 -->
+                <section class="control-section">
+                    <h3>社会保障・税制</h3>
+                    <div class="control-group">
+                        <div class="label-val">
+                            <label for="slider-social">社会保険料率調整</label>
+                            <span id="val-social" class="badge">±0.0%</span>
+                        </div>
+                        <input type="range" id="slider-social" min="-0.05" max="0.05" step="0.005" value="0">
+                        <div class="range-hint">現役世代の負担を直接加減算します</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="label-val">
+                            <label for="slider-etc">給付付き税額控除規模</label>
+                            <span id="val-etc" class="badge">0 兆円</span>
+                        </div>
+                        <input type="range" id="slider-etc" min="0" max="10" step="0.5" value="0">
+                        <div class="range-hint">低所得層向けの直接所得補填規模</div>
+                    </div>
+                </section>
+
+                <!-- 雇用・産業・ライフライン -->
+                <section class="control-section">
+                    <h3>構造改革・暮らしの防壁</h3>
+                    <div class="control-group">
+                        <div class="label-val">
+                            <label for="slider-reskill">リスキリング支援規模</label>
+                            <span id="val-reskill" class="badge">0 兆円</span>
+                        </div>
+                        <input type="range" id="slider-reskill" min="0" max="5" step="0.2" value="0">
+                        <div class="range-hint">短期的には摩擦コスト、中長期に潜在成長↑</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="label-val">
+                            <label for="slider-loan">住宅ローン変動金利比率</label>
+                            <span id="val-loan" class="badge">70%</span>
+                        </div>
+                        <input type="range" id="slider-loan" min="0" max="1" step="0.05" value="0.7">
+                        <div class="range-hint">金利上昇時の家計利払い感応度</div>
+                    </div>
+                </section>
+            </nav>
+        </aside>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- ヘッダー -->
+            <header class="app-header">
+                <h1>JAPAN-A_Living 国民生活・雇用影響シミュレーター</h1>
+                <div class="alert-box">
+                    <span class="warning-icon">⚠️</span>
+                    <p><strong>マクロ感応度に関する注意点:</strong> 本ツールは個々の数値の絶対的精度ではなく、「あるレバーを動かしたとき、どの変数に、どれだけの猶予で、どのようなベクトル（好循環/悪循環）の影響が波及するか」という構造的因果関係の共有に主眼を置いて設計されています。</p>
+                </div>
+            </header>
+
+            <!-- 現在の生活指標HUD (Living Indicator HUD) -->
+            <section class="hud-container">
+                <div class="hud-card" id="hud-wage">
+                    <div class="hud-title">平均実質賃金</div>
+                    <div class="hud-value">100.0 <span class="unit">指数</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-yd">
+                    <div class="hud-title">実質可処分所得</div>
+                    <div class="hud-value">360.0 <span class="unit">兆円</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-loan">
+                    <div class="hud-title">ローン支払金利負担</div>
+                    <div class="hud-value">0.31 <span class="unit">兆円/期</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-gap">
+                    <div class="hud-title">大中小賃金格差</div>
+                    <div class="hud-value">30.0 <span class="unit">%</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-penalty">
+                    <div class="hud-title">就業調整ペナルティ</div>
+                    <div class="hud-value">0.00 <span class="unit">%</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-inflation">
+                    <div class="hud-title">生活実感インフレ率</div>
+                    <div class="hud-value">1.00 <span class="unit">%</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+            </section>
+
+            <!-- グラフエリア -->
+            <section class="charts-grid">
+                <!-- 購買力と物価 -->
+                <div class="chart-container">
+                    <h2>平均賃金推移 (名目 vs 実質)</h2>
+                    <canvas id="chart-wages"></canvas>
+                </div>
+
+                <!-- 可処分所得と負担構成 -->
+                <div class="chart-container">
+                    <h2>家計の負担・所得構成</h2>
+                    <canvas id="chart-disposable"></canvas>
+                </div>
+
+                <!-- 雇用・格差 -->
+                <div class="chart-container">
+                    <h2>格差および労働供給就業調整</h2>
+                    <canvas id="chart-labor"></canvas>
+                </div>
+
+                <!-- マクロシナリオ状態 -->
+                <div class="chart-container">
+                    <h2>入力マクロ経済インディケーター (金利・インフレ)</h2>
+                    <canvas id="chart-macro"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,363 @@
+/* ==========================================================================
+   JAPAN-A_Living: Design System & Aesthetics Stylesheet (index.css)
+   ========================================================================== */
+
+/* 🌌 1. 変数定義・カラーパレット */
+:root {
+    /* テーマカラー: スレートダーク & 温かみのあるアンバー & 精緻なアクア */
+    --color-bg-deep: #0a0f1d;       /* 最背面のディープブルーブラック */
+    --color-bg-sidebar: #111827;    /* サイドバーのダークグレー */
+    --color-bg-card: #1f2937;       /* カード、コンテンツの背景 */
+    --color-border: #374151;        /* 境界線 */
+    
+    --color-text-main: #f3f4f6;     /* メインテキスト (ほぼホワイト) */
+    --color-text-muted: #9ca3af;    /* ミュートテキスト */
+    
+    /* ステート・アクセントカラー */
+    --color-accent-amber: #f59e0b;  /* インフレ、警告、注目点 (アンバー) */
+    --color-accent-aqua: #06b6d4;   /* 預金、成長、プラス指標 (アクア) */
+    --color-accent-blue: #3b82f6;   /* 金利、大企業、ニュートラル (ブルー) */
+    --color-accent-rose: #f43f5e;   /* ローン、ペナルティ、負担 (ローズ) */
+    --color-accent-emerald: #10b981;/* 実質賃金プラス、健全化 (エメラルド) */
+    
+    /* シャドウと角丸 */
+    --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+    --border-radius-lg: 16px;
+    --border-radius-md: 10px;
+    --border-radius-sm: 6px;
+    
+    /* トランジション */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 🧱 2. リセット & ベースレイアウト */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--color-bg-deep);
+    color: var(--color-text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* aside 3. サイドバー・コントロールパネル */
+.sidebar {
+    width: 320px;
+    background-color: var(--color-bg-sidebar);
+    border-right: 1px solid var(--color-border);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.sidebar-header {
+    margin-bottom: 32px;
+}
+
+.logo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--color-accent-amber) 0%, var(--color-accent-aqua) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.control-section {
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 20px;
+}
+
+.control-section:last-child {
+    border-bottom: none;
+}
+
+.control-section h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+
+.control-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.label-val {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-main);
+}
+
+.badge {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    color: var(--color-accent-amber);
+    padding: 2px 8px;
+    border-radius: var(--border-radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* スタイリッシュなスライダーデザイン */
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    outline: none;
+    margin: 8px 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-accent-amber);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    transition: var(--transition-smooth);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
+}
+
+.range-hint {
+    font-size: 11px;
+    color: var(--color-text-muted);
+}
+
+select {
+    width: 100%;
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-main);
+    padding: 8px 12px;
+    border-radius: var(--border-radius-sm);
+    outline: none;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+select:focus {
+    border-color: var(--color-accent-amber);
+}
+
+/* 💻 4. メインコンテンツエリア */
+.main-content {
+    flex-1: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+    overflow-y: auto;
+    width: calc(100% - 320px);
+}
+
+/* 補強された警告アラートボックス（学術防壁） */
+.app-header {
+    margin-bottom: 32px;
+}
+
+.app-header h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+}
+
+.alert-box {
+    background-color: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: var(--border-radius-md);
+    padding: 16px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.warning-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.alert-box p {
+    font-size: 12px;
+    color: #fbd38d; /* 明るいアンバー */
+    line-height: 1.6;
+}
+
+/* 📊 5. 生活指標 HUD (Heads-Up Display) */
+.hud-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.hud-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-premium);
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.hud-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: var(--color-border);
+}
+
+.hud-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* インジケータ別カラーアクセント */
+#hud-wage::before { background-color: var(--color-accent-emerald); }
+#hud-yd::before { background-color: var(--color-accent-aqua); }
+#hud-loan::before { background-color: var(--color-accent-rose); }
+#hud-gap::before { background-color: var(--color-accent-blue); }
+#hud-penalty::before { background-color: var(--color-accent-amber); }
+#hud-inflation::before { background-color: var(--color-accent-amber); }
+
+.hud-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.hud-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+
+.hud-value .unit {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.hud-delta {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.text-positive { color: var(--color-accent-emerald); }
+.text-negative { color: var(--color-accent-rose); }
+.text-neutral { color: var(--color-text-muted); }
+
+/* 📉 6. チャートエリア */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.chart-container {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-premium);
+}
+
+.chart-container h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--color-text-main);
+    border-left: 3px solid var(--color-accent-amber);
+    padding-left: 10px;
+}
+
+/* 📱 7. レスポンシブ対応 */
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .app-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+    }
+    
+    .main-content {
+        width: 100%;
+    }
+}
