@@ -125,56 +125,113 @@ document.addEventListener("DOMContentLoaded", () => {
             YD_real: [],
             Gap_wage: [],
             L_penalty: [],
-            pi_living: []
+            pi_living: [],
+            // 新規動学的変数
+            Y_s: [],
+            Y_d: [],
+            pi_dyn: [],
+            r_dyn: [],
+            R_dyn: []
         };
 
         // 初期値ハイドレーション
         let W_nominal_t = 100.0;
         let Gap_wage_t = 30.0; // 30%格差
+        let W_min_t = 1.0;     // 最低賃金指数 (初期値 1.0)
+        let P_t = 1.0;         // デフレーター (初期値 1.0)
+        let MC_t = 0.015;      // 限界費用
+        let R_long_t = 0.018;  // 長期金利（初期値 1.8%）
+        let r_policy_t = 0.010;// 政策金利（初期値 1.0%）
+        let Y_demand_t = 600.0;// 総需要（初期値 600兆円）
 
         const Balance_loan = 80.0;    // 住宅ローン残高 (兆円)
         const Balance_deposit = 200.0;// 家計預金残高 (兆円)
         const R_init = 0.015;         // 固定金利ローン基準値 (1.5%)
         const Self_Suff = 0.38;       // 食料自給率 (38%)
 
+        // 感応度パラメータ
+        const gamma1 = 0.005;       // 最低賃金の限界費用への影響
+        const gamma2 = 0.3;         // 長期金利の限界費用への影響
+        const beta1 = 0.1;          // 最低賃金による供給収縮 (10%上昇で1%減)
+        const beta2 = 0.5;          // 金利上昇による供給収縮 (2%上昇で1%減)
+        const R_neutral = 0.015;    // 中立長期金利
+        const r_neutral = 0.010;    // 中立政策金利
+        const pi_target = 0.020;    // 目標インフレ率
+        const phi_pi = 1.2;         // テイラー・ルール（インフレ係数）
+        const phi_y = 0.3;          // テイラー・ルール（需給ギャップ係数）
+        const term_premium = 0.008; // 期間プレミアム
+        const kappa = 0.15;         // 需給ギャップのインフレ感応度
+        const lambda = 0.4;         // 限界費用変化のコストプッシュインフレ感応度
+        const theta = 1.0;          // 金利の需要抑制効果
+        const eta = 0.2;            // 名目賃金の需要押し上げ効果
+
         for (let t = 0; t < 30; t++) {
-            // マクロ変数のロード
-            const pi_t = macro.pi[t];
-            const r_t = macro.r[t];
-            const R_t = macro.R[t];
-            const g_real_t = macro.g_real[t];
+            // 基本シナリオのマクロパラメータを期待値や潜在成長率のベースとして利用
+            const pi_expected_t = macro.pi[t];
             const E_t = macro.E[t];
 
-            // 簡易的GDPギャップ率の推定 (成長率が潜在成長率1%から乖離した分)
-            const gdpGap_t = g_real_t - 0.01;
+            // 1. 潜在成長と最低賃金・前回の値の保持
+            const MC_prev = MC_t;
+            const Y_potential_t = 600.0 * Math.pow(1 + 0.0025, t); // 潜在GDP (四半期0.25%成長)
+            W_min_t = W_min_t * (1 + inputs.dMW); // 最低賃金指数の更新
 
-            // 1. 賃金上昇率の決定方程式
-            // リスキル支援規模に応じて中長期(t > 8)に生産性向上効果を付加
-            const reskill_boost = (t > 8) ? 0.001 * inputs.G_reskill : -0.0005 * inputs.G_reskill; // 投資期は微細な摩擦コスト
-            const g_w = 0.0025 + 0.4 * pi_t + 0.1 * gdpGap_t + 0.015 * (inputs.alpha_pass - 0.5) + 0.05 * inputs.dMW + reskill_boost;
+            // 2. 限界費用 (MC) と総供給 (Y_s) の算出
+            MC_t = gamma1 * W_min_t + gamma2 * R_long_t;
+            
+            // 供給収縮の計算
+            const supply_ratio = 1 - beta1 * (W_min_t - 1.0) - beta2 * (R_long_t - R_neutral);
+            const Y_s_t = Y_potential_t * Math.max(0.5, supply_ratio); // 供給量下限ガード (50%以下にならない)
+
+            // 3. コストプッシュ型インフレ (pi_t) の算出
+            // 需給ギャップの計算
+            const gap_ratio = (Y_demand_t - Y_s_t) / Y_s_t;
+            const mc_change = (MC_prev > 0) ? (MC_t - MC_prev) / MC_prev : 0;
+            const pi_t = pi_expected_t + kappa * Math.max(-0.15, Math.min(0.15, gap_ratio)) + lambda * Math.max(0, mc_change);
+            
+            // インフレ率ガード (-5%〜25%の範囲)
+            const pi_clamped = Math.max(-0.05, Math.min(0.25, pi_t));
+
+            // 4. テイラー・ルール（政策金利 r_policy と 長期金利 R_long）の決定
+            r_policy_t = r_neutral + phi_pi * (pi_clamped - pi_target) + phi_y * Math.max(-0.15, Math.min(0.15, gap_ratio));
+            r_policy_t = Math.max(0.0, Math.min(0.15, r_policy_t)); // ゼロ金利制約 0% 〜 上限15% ガード
+            R_long_t = r_policy_t + term_premium;
+
+            // 5. 総需要 (Y_demand) の更新
+            // 名目平均賃金の更新
+            const reskill_boost = (t > 8) ? 0.001 * inputs.G_reskill : -0.0005 * inputs.G_reskill;
+            // 賃金上昇方程式
+            const g_w = 0.0025 + 0.4 * pi_clamped + 0.1 * Math.max(-0.15, Math.min(0.15, gap_ratio)) + 0.015 * (inputs.alpha_pass - 0.5) + 0.05 * inputs.dMW + reskill_boost;
             W_nominal_t = W_nominal_t * (1 + g_w);
-            const W_real_t = W_nominal_t / (1 + pi_t);
 
-            // 2. 賃金格差 (価格転嫁率が低いほど中小企業の賃上げが遅れる)
-            const dGap = 0.02 * (1 - inputs.alpha_pass) - 0.005 * inputs.dMW;
-            Gap_wage_t = Math.max(5.0, Gap_wage_t * (1 + dGap));
+            const demand_ratio = 1 - theta * (R_long_t - R_neutral) + eta * (W_nominal_t - 100.0) / 100.0;
+            Y_demand_t = Y_potential_t * Math.max(0.6, demand_ratio); // 需要量下限ガード
 
-            // 3. 金利の二面性 (住宅ローン vs 預金)
-            const Cost_loan_t = Balance_loan * (inputs.Loan_var * r_t + (1 - inputs.Loan_var) * R_init) * 0.25;
-            const Inc_deposit_t = Balance_deposit * (r_t * 0.5) * 0.25;
+            // 6. デフレーターと実質賃金の計算
+            P_t = P_t * (1 + pi_clamped);
+            P_t = Math.max(0.1, P_t); // デフレーターが0以下にならないようにガード
+            const W_real_t = W_nominal_t / P_t;
 
-            // 4. 税・社会保険料および可処分所得の算出
+            // 7. 金利の二面性 (住宅ローン vs 預金)
+            // 変動ローン金利（r_policy_t を指標とする）
+            const Cost_loan_t = Balance_loan * (inputs.Loan_var * r_policy_t + (1 - inputs.Loan_var) * R_init) * 0.25;
+            const Inc_deposit_t = Balance_deposit * (r_policy_t * 0.5) * 0.25;
+
+            // 8. 税・社会保険料および可処分所得の算出
             const gross_income = W_nominal_t * 3.6; // 賃金指数から雇用者所得規模(兆円)へのスケール
             const Tax_t = gross_income * 0.10;     // 簡易的実効税率10%
             const Social_t = gross_income * (0.15 + inputs.dSocial); // 基準社会保険料率15%にスライダーを加算
             const YD_t = gross_income + Inc_deposit_t - Cost_loan_t - Tax_t - Social_t + inputs.ETC;
+            const YD_real_t = YD_t / P_t;
 
-            // 5. 生活実感インフレ率 (自給率と為替連動)
-            const pi_living_t = pi_t + 0.12 * Math.max(0, (E_t - 150.0) / 150.0) * (1 - Self_Suff);
-            const YD_real_t = YD_t / (1 + pi_living_t);
+            // 9. 賃金格差 (価格転嫁率が低いほど中小企業の賃上げが遅れる)
+            const dGap = 0.02 * (1 - inputs.alpha_pass) - 0.005 * inputs.dMW;
+            Gap_wage_t = Math.max(5.0, Gap_wage_t * (1 + dGap));
 
-            // 6. 年収の壁ペナルティ (最低賃金上昇に伴う就業調整)
+            // 10. 年収の壁ペナルティ (最低賃金上昇に伴う就業調整)
             const L_penalty_t = Math.max(0, 0.04 * (inputs.dMW / 0.03) * (1 - 0.20) * 100); // 簡易壁見直し対策20%として固定
+
+            // 11. 生活実感インフレ率 (自給率と為替・デフレーター連動)
+            const pi_living_t = pi_clamped + 0.12 * Math.max(0, (E_t - 150.0) / 150.0) * (1 - Self_Suff);
 
             // 結果の保存
             results.W_nominal.push(W_nominal_t);
@@ -186,9 +243,22 @@ document.addEventListener("DOMContentLoaded", () => {
             results.Gap_wage.push(Gap_wage_t);
             results.L_penalty.push(L_penalty_t);
             results.pi_living.push(pi_living_t);
+            results.Y_s.push(Y_s_t);
+            results.Y_d.push(Y_demand_t);
+            results.pi_dyn.push(pi_clamped);
+            results.r_dyn.push(r_policy_t);
+            results.R_dyn.push(R_long_t);
         }
 
-        return { results, macro };
+        // macro オブジェクトの金利・インフレデータを動学値で上書きする
+        const dyn_macro = {
+            ...macro,
+            pi: results.pi_dyn,
+            r: results.r_dyn,
+            R: results.R_dyn
+        };
+
+        return { results, macro: dyn_macro };
     };
 
     // 📈 4. チャートインスタンスの管理
@@ -239,17 +309,46 @@ document.addEventListener("DOMContentLoaded", () => {
             options: chartOptions
         });
 
-        // 3. 格差と就業調整ペナルティ
+        // 3. 格差・就業調整および総需給チャート (左右2軸化)
+        const chartOptionsLabor = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { grid: { color: "#374151" }, ticks: { color: "#9ca3af" } },
+                y: { 
+                    type: 'linear',
+                    position: 'left',
+                    grid: { color: "#374151" }, 
+                    ticks: { color: "#9ca3af" },
+                    title: { display: true, text: "比率 (%)", color: "#9ca3af" }
+                },
+                y2: {
+                    type: 'linear',
+                    position: 'right',
+                    grid: { drawOnChartArea: false }, // 右軸のグリッド線を描画しない
+                    ticks: { color: "#9ca3af" },
+                    title: { display: true, text: "需要・供給量 (兆円)", color: "#9ca3af" },
+                    min: 300,
+                    max: 750
+                }
+            },
+            plugins: {
+                legend: { labels: { color: "#f3f4f6" } }
+            }
+        };
+
         charts.labor = new Chart(ctxLabor, {
             type: "line",
             data: {
                 labels: data.results.t,
                 datasets: [
-                    { label: "大中小賃金格差 (%)", data: data.results.Gap_wage, borderColor: "#3b82f6", tension: 0.1 },
-                    { label: "就業調整ペナルティ (%)", data: data.results.L_penalty, borderColor: "#f59e0b", tension: 0.1 }
+                    { label: "大中小賃金格差 (%)", data: data.results.Gap_wage, borderColor: "#3b82f6", tension: 0.1, yAxisID: 'y' },
+                    { label: "就業調整ペナルティ (%)", data: data.results.L_penalty, borderColor: "#f59e0b", tension: 0.1, yAxisID: 'y' },
+                    { label: "総供給 Ys (兆円)", data: data.results.Y_s, borderColor: "#10b981", tension: 0.1, yAxisID: 'y2', borderDash: [2, 2] },
+                    { label: "総総需要 Yd (兆円)", data: data.results.Y_d, borderColor: "#06b6d4", tension: 0.1, yAxisID: 'y2', borderDash: [5, 5] }
                 ]
             },
-            options: chartOptions
+            options: chartOptionsLabor
         });
 
         // 4. マクロ金利・インフレ状態チャート
@@ -279,6 +378,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         charts.labor.data.datasets[0].data = data.results.Gap_wage;
         charts.labor.data.datasets[1].data = data.results.L_penalty;
+        charts.labor.data.datasets[2].data = data.results.Y_s;
+        charts.labor.data.datasets[3].data = data.results.Y_d;
         charts.labor.update();
 
         charts.macro.data.datasets[0].data = data.macro.pi.map(v => v * 100);
