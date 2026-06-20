@@ -197,8 +197,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const cost_push = 0.03 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
         const FX_shock = (config.E_current - state.E_init) / state.E_init;
 
-        // 消費税率変更に伴う一時的な価格押し上げ効果 (第1期から減衰しながら物価へ転嫁)
-        const tax_shock = (config.dConsumption / 4) * Math.pow(0.5, t);
+        // 消費税率変更に伴う持続的な物価押し上げ効果 (毎期 dConsumption/4 をコストプッシュとして加算)
+        const tax_shock = config.dConsumption / 4;
         const pi = (state.pi_target / 4) + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push + 0.04 * FX_shock * (1 - config.Self_Suff) + tax_shock;
         const pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, pi)); // 年率-5%〜15%にクランプ
 

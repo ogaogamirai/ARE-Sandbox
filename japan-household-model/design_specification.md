@@ -99,7 +99,7 @@ graph TD
    - $\max(0.5, \dots)$: 供給の崩壊を防ぐ下限ガード
 
 ### 2.2 コストプッシュ型インフレ動学
-インフレ率 $\pi_t$ は、マクロの需給ギャップ、企業の限界費用の上昇による価格転嫁、為替変動、および消費税調整に伴う直接的な物価押し上げ効果（一時的減衰ショック）から動的に決定されます。
+インフレ率 $\pi_t$ は、マクロの需給ギャップ、企業の限界費用の上昇による価格転嫁、為替変動、および消費税調整に伴う直接的な物価押し上げ効果（持続的ショック）から動的に決定されます。
 
 1. **需給ギャップ率 ($gap\_ratio_t$)**
    $$gap\_ratio_t = \frac{Y_{\text{demand}, t-1} - Y_{s, t}}{Y_{s, t}}$$
@@ -107,13 +107,13 @@ graph TD
 2. **インフレ率 ($\pi_t$)**
    $$\pi_t = \pi_{\text{expected}, t} + \kappa \cdot \text{clamp}(gap\_ratio_t, -0.25, 0.25) + \lambda \max\left(0, \frac{MC_t - MC_{t-1}}{MC_{t-1}}\right) \times (2.0 \alpha_{\text{pass}}) + \phi_{\text{fx}} \cdot \left( \frac{E_t - E_{\text{init}}}{E_{\text{init}}} \right) \times (1 - Self\_Suff) + \text{tax\_shock}_t$$
    
-   $$\text{tax\_shock}_t = \left(\frac{dConsumption}{4}\right) \times 0.5^t \quad (t \ge 0)$$
+   $$\text{tax\_shock}_t = \frac{dConsumption}{4} \quad (t \ge 0)$$
    
    - $\pi_{\text{expected}, t}$: 目標インフレ率ベース $\pi_{\text{target}} / 4$ (年率 2.0%)
    - $\kappa = 0.10$（需給ギャップインフレ感応度）
    - $\lambda = 0.12$（限界費用インフレ感応度）
    - $\phi_{\text{fx}} = 0.16$（為替ショック感応度。四半期ベース 0.04）
-   - $\text{tax\_shock}_t$: 消費税率変更に伴う一時的な直接価格上乗せ効果。第1期（$t=0$）に最大（四半期ベース $dConsumption/4$、年率換算で税率変更幅そのもの）となり、その後期ごとに半減（減衰）しながら物価へ転嫁され、インフレ率への直接影響は消滅します。
+   - $\text{tax\_shock}_t$: 消費税率変更に伴う持続的な直接価格上乗せ効果。消費税の増減税（$dConsumption$）は、四半期ベースで $dConsumption/4$（年率換算で変更幅そのもの）だけ、シミュレーション全期間にわたってインフレ率を直接押し上げ／押し下げます。
    - $\pi_{\text{clamped}} = \max(-0.05, \min(0.25, \pi_t))$: 安全ガード（下限-5%、上限25%）
 
 ### 2.3 テイラー・ルール（金融政策フィードバック）
