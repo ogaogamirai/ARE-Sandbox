@@ -439,6 +439,14 @@ select:focus {
     transform: translateY(1px);
 }
 
+.btn-share {
+    background-color: var(--color-accent-emerald);
+}
+
+.btn-share:hover {
+    background-color: #047857;
+}
+
 /* 🌌 8. サイドバー内 HUD カスタマイズ (縦並び・2列グリッド) */
 .sidebar .hud-container {
     display: grid;

@@ -180,8 +180,11 @@
                           </div>
                       </div>
 
-                      <!-- CSVエクスポート -->
-                      <div class="control-group" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                      <!-- 共有と出力 -->
+                      <div class="control-group" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                          <button id="btn-copy-link" class="btn-export btn-share">
+                              🔗 設定条件付きリンクをコピー
+                          </button>
                           <button id="btn-export-csv" class="btn-export">
                               📊 CSVエクスポート
                           </button>
@@ -234,6 +237,6 @@
     <!-- 凡例ホバーポップアップ解説用コンテナ -->
     <div id="legend-tooltip" class="legend-tooltip" style="display: none; position: absolute; z-index: 1000;"></div>
 
-    <script src="main.js?v=1.5.0"></script>
+    <script src="main.js?v=1.6.0"></script>
 </body>
 </html>

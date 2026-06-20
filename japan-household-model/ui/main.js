@@ -690,6 +690,59 @@ document.addEventListener("DOMContentLoaded", () => {
         updateMetricsAndCharts();
     };
 
+    // 🔗 URLパラメータのエンコードとデコード (共有リンク機能)
+    const generateShareURL = () => {
+        const url = new URL(window.location.href);
+        url.search = ""; // 一旦クリア
+        
+        // 基本設定
+        url.searchParams.set("scenario", elements.scenario.value);
+        url.searchParams.set("pass", document.getElementById("slider-pass").value);
+        url.searchParams.set("mw", document.getElementById("slider-mw").value);
+        url.searchParams.set("social", document.getElementById("slider-social").value);
+        url.searchParams.set("etc", document.getElementById("slider-etc").value);
+        url.searchParams.set("reskill", document.getElementById("slider-reskill").value);
+        url.searchParams.set("loan", document.getElementById("slider-loan").value);
+        
+        // T=0 初期値
+        url.searchParams.set("igdp", document.getElementById("init-gdp").value);
+        url.searchParams.set("idep", document.getElementById("init-deposit").value);
+        url.searchParams.set("iloan", document.getElementById("init-loan").value);
+        url.searchParams.set("iunemp", document.getElementById("init-unemployment").value);
+        url.searchParams.set("ifx", document.getElementById("init-fx").value);
+        url.searchParams.set("isocial", document.getElementById("init-social").value);
+        url.searchParams.set("igap", document.getElementById("init-gap").value);
+        
+        return url.toString();
+    };
+
+    const loadParametersFromURL = () => {
+        const params = new URLSearchParams(window.location.search);
+        const restoreVal = (paramName, elementId) => {
+            if (params.has(paramName)) {
+                const val = params.get(paramName);
+                const el = document.getElementById(elementId);
+                if (el) el.value = val;
+            }
+        };
+        
+        restoreVal("scenario", "macro-scenario");
+        restoreVal("pass", "slider-pass");
+        restoreVal("mw", "slider-mw");
+        restoreVal("social", "slider-social");
+        restoreVal("etc", "slider-etc");
+        restoreVal("reskill", "slider-reskill");
+        restoreVal("loan", "slider-loan");
+        
+        restoreVal("igdp", "init-gdp");
+        restoreVal("idep", "init-deposit");
+        restoreVal("iloan", "init-loan");
+        restoreVal("iunemp", "init-unemployment");
+        restoreVal("ifx", "init-fx");
+        restoreVal("isocial", "init-social");
+        restoreVal("igap", "init-gap");
+    };
+
     // 📞 7. イベントリスナーの設定
     const setupEventListeners = () => {
         const controls = [
@@ -743,10 +796,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 input.addEventListener("change", handleSliderUpdate);
             }
         });
+
+        // 🔗 設定条件付きリンクのコピーイベント
+        const btnCopyLink = document.getElementById("btn-copy-link");
+        if (btnCopyLink) {
+            btnCopyLink.addEventListener("click", (e) => {
+                e.preventDefault();
+                const shareURL = generateShareURL();
+                navigator.clipboard.writeText(shareURL).then(() => {
+                    const originalText = btnCopyLink.textContent;
+                    btnCopyLink.textContent = "✓ コピー完了！";
+                    btnCopyLink.style.backgroundColor = "#047857"; // 濃い目のグリーン
+                    setTimeout(() => {
+                        btnCopyLink.textContent = originalText;
+                        btnCopyLink.style.backgroundColor = ""; // 元に戻す
+                    }, 2000);
+                }).catch(err => {
+                    console.error("Failed to copy link:", err);
+                    alert("リンクのコピーに失敗しました。URL欄から直接コピーしてください。");
+                });
+            });
+        }
     };
 
     // 🚀 8. アプリケーション初期化起動
     const initApp = () => {
+        loadParametersFromURL(); // URLクエリパラメータから状態を復元
+        
         setupEventListeners();
         
         const initialData = runSimulation();
