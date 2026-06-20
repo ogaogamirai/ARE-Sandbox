@@ -76,14 +76,46 @@ document.addEventListener("DOMContentLoaded", () => {
       // 初期値のセット
       let state = { ...INITIAL_STATE };
 
+      // 🏁 第0期 (シミュレーション開始前・基準初期状態) の計算と登録
+      const init_r_policy = state.r_neutral;
+      const init_R_long = state.r_neutral + state.term_premium;
+      const init_Inc_deposit = state.Balance_deposit * (init_r_policy * 0.5) * 0.25;
+      const init_Cost_loan = state.Balance_loan * (config.Loan_var * init_r_policy + (1.0 - config.Loan_var) * 0.015) * 0.25;
+      const init_Gross_Income = state.W_nominal * 3.6; // 初期就業ペナルティは0
+      const init_Tax = init_Gross_Income * 0.10;
+      const init_Social = init_Gross_Income * (0.15 + config.dSocial);
+      const init_YD = init_Gross_Income + init_Inc_deposit - init_Cost_loan - init_Tax - init_Social + config.ETC;
+
+      history.push({
+        step: 0,                            // 開始時点 (第0期)
+        Y_potential: state.Y_potential,
+        Y_s: state.Y_potential,
+        Y_d: state.Y_potential,
+        gap_ratio: 0.0,
+        pi_clamped: (state.pi_target) * 100, // 年率 % (2.0%)
+        pi_living: (state.pi_target) * 100,  // 年率 % (2.0%)
+        r_policy: init_r_policy * 100,       // 年率 % (1.0%)
+        R_long: init_R_long * 100,           // 年率 % (1.8%)
+        W_nominal: state.W_nominal,          // 100
+        W_real: state.W_nominal,             // 100
+        L_penalty: 0.0,                      // 初期就業調整は 0%
+        Inc_deposit: init_Inc_deposit,       // 兆円
+        Cost_loan: init_Cost_loan,           // 兆円
+        YD: init_YD,
+        YD_real: init_YD / state.P_def,
+        Gap_wage: state.Gap_wage * 100,      // % (30%)
+        MC: state.MC_init
+      });
+
+      // 🔄 1期〜30期のシミュレーション実行
       for (let t = 0; t < steps; t++) {
-        const period = t;
+        const period = t + 1;
 
         // ① 最低賃金指数の累積更新
         state.W_min = state.W_min * Math.pow(1 + config.dMW, dt);
 
         // ② 企業の限界費用 MC_t の計算 (金利の寄与を実態に即して 0.1 にマイルド化)
-        const R_prev = t > 0 ? history[t - 1].R_long : state.R_neutral;
+        const R_prev = t > 0 ? (history[t].R_long / 100) : init_R_long; // 前期の長期金利を元の割合にデスケール
         const MC = 0.005 * state.W_min + 0.1 * R_prev;
 
         // ③ 潜在GDPの成長 (四半期 0.25%)
@@ -112,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const gap_ratio = (Y_d - Y_s) / Y_s;
 
         // ⑩ コストプッシュ型インフレ動学 (急激な四半期比MC変化に1期の移動平均的なラグを挟んでマイルド化)
-        const MC_prev = t > 0 ? history[t - 1].MC : state.MC_init;
+        const MC_prev = history[t].MC;
         const MC_growth = MC_prev > 0 ? (MC - MC_prev) / MC_prev : 0;
         
         // 期待インフレ率を四半期換算し、コストプッシュ(λ)の伝播を0.25で調整
@@ -159,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 履歴に蓄積 (年率換算値に較正)
         history.push({
-          step: period + 1,
+          step: period,
           Y_potential: Y_potential_t,
           Y_s,
           Y_d,
@@ -210,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
         charts.wage = new Chart(ctxWages, {
             type: "line",
             data: {
-                labels: history.map(h => `期 ${h.step}`),
+                labels: history.map(h => h.step === 0 ? "初期" : `${h.step}期`),
                 datasets: [
                     { label: "平均名目賃金指数", data: history.map(h => h.W_nominal), borderColor: "#3b82f6", backgroundColor: "transparent", borderWidth: 2, tension: 0.1 },
                     { label: "平均実質賃金指数", data: history.map(h => h.W_real), borderColor: "#10b981", backgroundColor: "transparent", borderWidth: 2, tension: 0.1 }
@@ -219,11 +251,11 @@ document.addEventListener("DOMContentLoaded", () => {
             options: chartOptions
         });
 
-        // 2. 所得・利払い構成チャート (左右2軸化に適合)
+        // 2. 所得・利払い構成チャート (左右2軸化・オートスケール向上)
         charts.household = new Chart(ctxDisposable, {
             type: "line",
             data: {
-                labels: history.map(h => `期 ${h.step}`),
+                labels: history.map(h => h.step === 0 ? "初期" : `${h.step}期`),
                 datasets: [
                     { 
                         label: "実質可処分所得 (左軸: 兆円)", 
@@ -267,14 +299,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         title: { display: true, text: '所得規模 (兆円)', color: '#9ca3af' },
                         grid: { color: 'rgba(255,255,255,0.05)' }, 
                         ticks: { color: '#9ca3af' } 
+                        // オートスケールにして可処分所得の微細な変化を検出しやすくする
                     },
                     y1: { 
                         type: 'linear',
                         display: true,
                         position: 'right',
                         title: { display: true, text: '金利収支負担 (兆円)', color: '#9ca3af' },
-                        min: 0,
-                        max: 10, 
+                        min: 0, 
+                        // maxの固定制限を撤去してオートスケールにし、金利負担の動きを際立たせる
                         grid: { drawOnChartArea: false }, 
                         ticks: { color: '#9ca3af' } 
                     },
@@ -313,12 +346,12 @@ document.addEventListener("DOMContentLoaded", () => {
         charts.labor = new Chart(ctxLabor, {
             type: "line",
             data: {
-                labels: history.map(h => `期 ${h.step}`),
+                labels: history.map(h => h.step === 0 ? "初期" : `${h.step}期`),
                 datasets: [
                     { label: "大中小賃金格差 (%)", data: history.map(h => h.Gap_wage), borderColor: "#6366f1", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "就業調整ペナルティ (%)", data: history.map(h => h.L_penalty), borderColor: "#f59e0b", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "総供給 Ys (右軸: 兆円)", data: history.map(h => h.Y_s), borderColor: "#10b981", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' },
-                    { label: "総需要 Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
+                    { label: "総ジューヨ Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
                 ]
             },
             options: chartOptionsLabor
@@ -328,7 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
         charts.macro = new Chart(ctxMacro, {
             type: "line",
             data: {
-                labels: history.map(h => `期 ${h.step}`),
+                labels: history.map(h => h.step === 0 ? "初期" : `${h.step}期`),
                 datasets: [
                     { label: "マクロインフレ率 (年率 %)", data: history.map(h => h.pi_clamped), borderColor: "#eab308", backgroundColor: "transparent", borderWidth: 2, tension: 0.1 },
                     { label: "政策金利 (年率 %)", data: history.map(h => h.r_policy), borderColor: "#3b82f6", backgroundColor: "transparent", borderWidth: 2, tension: 0.1 },
@@ -356,16 +389,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const updateMetricsAndCharts = () => {
         const history = runSimulation();
         const last = history[history.length - 1];
-        const first = history[0];
+        const first = history[0]; // 初期時点 (第0期)
 
-        // 📋 HUD（カード）の更新 (現在の HTML ID)
+        // 📋 HUD（カード）の更新 (対「初期状態」のdeltaを測定)
         elements.hudWage.innerHTML = `${last.W_real.toFixed(1)} <span class="unit">指数</span>`;
-        const wageDelta = last.W_real - 100.0;
+        const wageDelta = last.W_real - first.W_real;
         elements.hudWageDelta.textContent = `${wageDelta >= 0 ? '▲' : '▼'} ${Math.abs(wageDelta).toFixed(1)} (対期首)`;
         elements.hudWageDelta.className = `hud-delta ${wageDelta > 0 ? 'text-positive' : wageDelta < 0 ? 'text-negative' : 'text-neutral'}`;
 
         elements.hudYd.innerHTML = `${last.YD_real.toFixed(1)} <span class="unit">兆円</span>`;
-        const ydDelta = last.YD_real - 360.0;
+        const ydDelta = last.YD_real - first.YD_real;
         elements.hudYdDelta.textContent = `${ydDelta >= 0 ? '▲' : '▼'} ${Math.abs(ydDelta).toFixed(1)} (対期首)`;
         elements.hudYdDelta.className = `hud-delta ${ydDelta > 0 ? 'text-positive' : ydDelta < 0 ? 'text-negative' : 'text-neutral'}`;
 
@@ -375,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.hudLoanDelta.className = `hud-delta ${loanDelta > 0 ? 'text-negative' : loanDelta < 0 ? 'text-positive' : 'text-neutral'}`;
 
         elements.hudGap.innerHTML = `${last.Gap_wage.toFixed(1)} <span class="unit">%</span>`;
-        const gapDelta = last.Gap_wage - 30.0;
+        const gapDelta = last.Gap_wage - first.Gap_wage;
         elements.hudGapDelta.textContent = `${gapDelta > 0 ? '▲ 拡大' : gapDelta < 0 ? '▼ 縮小' : '不変'}`;
         elements.hudGapDelta.className = `hud-delta ${gapDelta > 0 ? 'text-negative' : gapDelta < 0 ? 'text-positive' : 'text-neutral'}`;
 
@@ -399,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // チャートの更新
-        const labels = history.map(h => `期 ${h.step}`);
+        const labels = history.map(h => h.step === 0 ? "初期" : `${h.step}期`);
 
         charts.wage.data.labels = labels;
         charts.wage.data.datasets[0].data = history.map(h => h.W_nominal);
