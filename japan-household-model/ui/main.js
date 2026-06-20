@@ -122,8 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // ③ 潜在GDPの成長 (四半期 0.25%)
         const Y_potential_t = state.Y_potential * Math.pow(1 + 0.0025, period);
 
-        // ④ 総供給量 Y_s,t の計算 (供給収縮効果)
-        const W_min_impact = 0.1 * (state.W_min - 1.0);
+        // ④ 総供給量 Y_s,t の計算 (価格転嫁率が高いほど人件費ショックによる利益率悪化を防ぎ、供給収縮を緩和)
+        const W_min_impact = 0.1 * (state.W_min - 1.0) * (2.0 - 2.0 * config.alpha_pass);
         const R_impact = 0.5 * (R_prev - state.R_neutral);
         const Y_s = Y_potential_t * Math.max(0.5, 1.0 - W_min_impact - R_impact);
 
