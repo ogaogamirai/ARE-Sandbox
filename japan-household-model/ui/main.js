@@ -18,7 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
       pi_target: 0.020,         // 年間目標インフレ率 2.0%
       term_premium: 0.008,      // 期間プレミアム 0.8%
       MC_init: 0.0104,          // 初期の限界費用基準値
-      E_init: 150.0             // 基準為替レート
+      E_init: 150.0,            // 基準為替レート
+      Unemployment_Rate: 2.5    // 日本の直近の完全失業率 (基準初期値 2.5%)
     };
 
     // 2. 政策スライダーおよび構造パラメータの現在値
@@ -105,7 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
         YD: init_YD,
         YD_real: init_YD / state.P_def,
         Gap_wage: state.Gap_wage * 100,      // % (30%)
-        MC: state.MC_init
+        MC: state.MC_init,
+        Unemployment_Rate: state.Unemployment_Rate // 2.5%
       });
 
       // 🔄 1期〜30期のシミュレーション実行
@@ -191,6 +193,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const dGap = 0.02 * (1 - config.alpha_pass) - 0.005 * config.dMW;
         state.Gap_wage = state.Gap_wage * (1 + dGap);
 
+        // ⑳ 失業率 Unemployment_Rate (%) の算出
+        let reskill_unemp_impact = 0.0;
+        if (config.G_reskill > 0) {
+          if (period <= 8) {
+            reskill_unemp_impact = 0.05 * config.G_reskill; // キャリア転換に伴う摩擦的失業
+          } else {
+            reskill_unemp_impact = -0.08 * config.G_reskill; // マッチング成功による構造的失業の解消
+          }
+        }
+        // 需給ギャップ悪化(マイナス)で失業増、最賃ショックによる就業調整で不完全雇用・失業増
+        const Unemployment_Rate = Math.max(1.5, state.Unemployment_Rate - 0.15 * (gap_ratio * 100) + 0.20 * (L_penalty * 100) + reskill_unemp_impact);
+
         // 履歴に蓄積 (年率換算値に較正)
         history.push({
           step: period,
@@ -209,8 +223,9 @@ document.addEventListener("DOMContentLoaded", () => {
           Cost_loan,                        // 兆円フロー
           YD,                               // 兆円フロー
           YD_real,                          // 兆円フロー
-          Gap_wage: state.Gap_wage * 100,         // %
-          MC
+          Gap_wage: state.Gap_wage * 100,   // %
+          MC,
+          Unemployment_Rate                 // %
         });
 
         // 次期の名目賃金指数の更新
@@ -234,7 +249,8 @@ document.addEventListener("DOMContentLoaded", () => {
         "総需要 Yd": "家計の実質所得や金利動向などに基づく経済全体の総demand。実質賃金の増加で拡大し、利上げによる経済引き締めで収縮します。",
         "マクロインフレ率": "マクロ経済の需給ギャップや、企業の最低賃金・金利負担増加に伴う限界費用（MC）の上昇から算出される、日本経済全体の年間インフレ率。",
         "政策金利": "日銀が設定する短期政策金利。インフレが目標（2%）を超えて上昇するか、景気が過熱するとテイラー・ルールに従い引き上げられます。",
-        "長期金利": "政策金利に期間プレミアムを加味した市場金利。住宅ローン金利の基準となり、投資活動を通じてマクロ経済へ波及します。"
+        "長期金利": "政策金利に期間プレミアムを加味した市場金利。住宅ローン金利の基準となり、投資活動を通じてマクロ経済へ波及します。",
+        "失業率": "労働力人口に対する完全失業者の割合。マクロの需給ギャップ（不景気による失業）や、最低賃金上昇に伴う就業時間の抑制ペナルティを反映し、中長期的なリスキリング支援によって改善されます。"
     };
 
     // 凡例テキストを正規化してディクショナリキーにマッチングさせる
@@ -415,6 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 datasets: [
                     { label: "大中小賃金格差 (%)", data: history.map(h => h.Gap_wage), borderColor: "#6366f1", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "就業調整ペナルティ (%)", data: history.map(h => h.L_penalty), borderColor: "#f59e0b", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
+                    { label: "失業率 (%)", data: history.map(h => h.Unemployment_Rate), borderColor: "#ec4899", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "総供給 Ys (右軸: 兆円)", data: history.map(h => h.Y_s), borderColor: "#10b981", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' },
                     { label: "総供給 Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
                 ]
@@ -519,8 +536,9 @@ document.addEventListener("DOMContentLoaded", () => {
         charts.labor.data.labels = labels;
         charts.labor.data.datasets[0].data = history.map(h => h.Gap_wage);
         charts.labor.data.datasets[1].data = history.map(h => h.L_penalty);
-        charts.labor.data.datasets[2].data = history.map(h => h.Y_s);
-        charts.labor.data.datasets[3].data = history.map(h => h.Y_d);
+        charts.labor.data.datasets[2].data = history.map(h => h.Unemployment_Rate);
+        charts.labor.data.datasets[3].data = history.map(h => h.Y_s);
+        charts.labor.data.datasets[4].data = history.map(h => h.Y_d);
         charts.labor.update();
 
         charts.macro.data.labels = labels;
@@ -546,6 +564,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "平均名目賃金指数 (W_nominal / 初期100)",
             "平均実質賃金指数 (W_real / 初期100)",
             "就業調整ペナルティ (L_penalty / %)",
+            "失業率 (Unemployment_Rate / %)",
             "預金利息受取 (Inc_deposit / 兆円)",
             "住宅ローン支払負担 (Cost_loan / 兆円)",
             "名目可処分所得 (YD / 兆円)",
@@ -568,6 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
             h.W_nominal.toFixed(2),
             h.W_real.toFixed(2),
             h.L_penalty.toFixed(2),
+            h.Unemployment_Rate.toFixed(2),
             h.Inc_deposit.toFixed(4),
             h.Cost_loan.toFixed(4),
             h.YD.toFixed(3),
