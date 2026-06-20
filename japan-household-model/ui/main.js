@@ -95,16 +95,24 @@ document.addEventListener("DOMContentLoaded", () => {
       // 為替ショックの算出 (t=0時点から共通で使用)
       const init_FX_shock = (config.E_current - state.E_init) / state.E_init;
       
-      // 🏁 第0期 (シミュレーション開始前・基準初期状態) での為替ショックを考慮したマクロインフレと金利のハイドレーション
-      // マクロインフレ率への為替コストプッシュ波及 (四半期ベースで 0.04 倍)
-      const init_pi_quarter = (state.pi_target / 4) + 0.04 * init_FX_shock * (1 - config.Self_Suff);
+      // 初期労働所得 (初期就業ペナルティ=0)
+      const init_Gross_Income = state.W_nominal * 3.6;
+
+      // 1. 社会保険料およびETCによる初期の需給ギャップ (init_gap_ratio) の算出
+      const init_Demand_Social_impact = 0.8 * (init_Gross_Income * config.dSocial / state.Y_potential);
+      const init_Demand_ETC_impact = 0.8 * (config.ETC / state.Y_potential);
+      const init_gap_ratio = -init_Demand_Social_impact + init_Demand_ETC_impact;
+
+      // 🏁 第0期 (シミュレーション開始前・基準初期状態) での為替ショックおよび初期需給ギャップを考慮したマクロインフレと金利のハイドレーション
+      // マクロインフレ率への為替コストプッシュ波及 (四半期ベースで 0.04 倍) と初期需給ギャップ波及 (0.10倍)
+      const init_pi_quarter = (state.pi_target / 4) + 0.10 * init_gap_ratio + 0.04 * init_FX_shock * (1 - config.Self_Suff);
       const init_pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, init_pi_quarter));
       
-      // 初期政策金利 (初期需給ギャップは0)
-      const init_r_policy = Math.max(0.0, Math.min(0.12, state.r_neutral + 1.2 * (init_pi_clamped - (state.pi_target / 4))));
+      // 初期政策金利 (初期需給ギャップの金利影響 0.3倍 を適用)
+      const init_r_policy = Math.max(0.0, Math.min(0.12, state.r_neutral + 1.2 * (init_pi_clamped - (state.pi_target / 4)) + 0.3 * init_gap_ratio));
       const init_R_long = init_r_policy + state.term_premium;
       
-      // 初期生活実感インフレ率 (マクロインフレにさらに 0.08 倍の直接為替影響を加算)
+      // 初期生活実感インフレ率 (マクロインフレにさらに 0.08 倍 of 直接為替影響を加算)
       const init_pi_living_quarter = init_pi_clamped + 0.08 * init_FX_shock * (1 - config.Self_Suff);
 
       // 初期限界費用の一貫計算 (ハードコード MC_init を廃止し金利連動)
@@ -112,7 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const init_Inc_deposit = state.Balance_deposit * (init_r_policy * 0.5) * 0.25;
       const init_Cost_loan = state.Balance_loan * (config.Loan_var * init_r_policy + (1.0 - config.Loan_var) * 0.015) * 0.25;
-      const init_Gross_Income = state.W_nominal * 3.6; // 初期就業ペナルティは0
       const init_Tax = init_Gross_Income * 0.10;
       const init_Social = init_Gross_Income * (0.15 + config.dSocial);
       const init_YD = init_Gross_Income + init_Inc_deposit - init_Cost_loan - init_Tax - init_Social + config.ETC;
@@ -121,8 +128,8 @@ document.addEventListener("DOMContentLoaded", () => {
         step: 0,                            // 開始時点 (第0期)
         Y_potential: state.Y_potential,
         Y_s: state.Y_potential,
-        Y_d: state.Y_potential,
-        gap_ratio: 0.0,
+        Y_d: state.Y_potential * (1 + init_gap_ratio),
+        gap_ratio: init_gap_ratio * 100,     // パーセンテージ %
         pi_clamped: init_pi_clamped * 4 * 100, // 連動初期値 (年率 %)
         pi_living: init_pi_living_quarter * 4 * 100,  // 連動初期値 (年率 %)
         r_policy: init_r_policy * 100,       // 連動初期値 (年率 %)
@@ -164,11 +171,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // ⑦ 実質賃金指数 W_real,t の計算
         const W_real = state.W_nominal / state.P_def;
 
-        // ⑧ 総需要量 Y_demand,t の計算 (実質賃金所得効果に加え、給付付き税額控除の需要押し上げ効果0.8倍をマウント)
+        // ⑧ 総需要量 Y_demand,t の計算 (実質賃金所得効果に加え、給付付き税額控除の需要押し上げ効果0.8倍、および社会保険料の需要影響を適用)
         const Demand_R_impact = 0.3 * (R_prev - state.R_neutral);
         const Demand_W_impact = 0.2 * ((W_real - 100.0) / 100.0);
         const Demand_ETC_impact = 0.8 * (config.ETC / Y_potential_t);
-        const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact + Demand_ETC_impact);
+        const Demand_Social_impact = 0.8 * (Gross_Income * config.dSocial / Y_potential_t);
+        const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact + Demand_ETC_impact - Demand_Social_impact);
 
         // ⑨ 需給ギャップ率
         const gap_ratio = (Y_d - Y_s) / Y_s;
