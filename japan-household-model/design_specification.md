@@ -170,10 +170,12 @@ graph TD
 インフレの累積効果を表現するため、物価デフレーター $P_t$ を導入し、実質的な購買力の推移を厳密に評価します。
 
 1. **可処分所得 ($YD_t$)**
-   $$YD_t = \left( W_{\text{nominal}, t} \times 3.6 \right) + Inc_{\text{deposit}, t} - Cost_{\text{loan}, t} - \text{Tax}_t - \text{Social\_Premium}_t + \text{ETC}_t$$
+   $$YD_t = Gross\_Income_t + Inc_{\text{deposit}, t} - Cost_{\text{loan}, t} - \text{Tax}_t - \text{Social\_Premium}_t + \text{ETC}_t$$
+   $$Gross\_Income_t = W_{\text{nominal}, t} \times 3.6 \times (1 - \psi_{\text{penalty}} \cdot L_{\text{penalty}, t})$$
    - $3.6$: 基準賃金指数（初期値100）をマクロ総雇用所得規模（約360兆円）に合わせるスケーリング係数
-   - $\text{Tax}_t = YD_{\text{gross}, t} \times 0.10$ (簡易実効税率 10.0%)
-   - $\text{Social\_Premium}_t = YD_{\text{gross}, t} \times (0.15 + \Delta \tau_{\text{social}})$
+   - $\psi_{\text{penalty}} = 0.10$: 就業調整ペナルティのマクロ所得波及シェア。非正規パート雇用所得のウェイトを考慮して 10% と設定。
+   - $\text{Tax}_t = Gross\_Income_t \times 0.10$ (簡易実効税率 10.0%)
+   - $\text{Social\_Premium}_t = Gross\_Income_t \times (0.15 + \Delta \tau_{\text{social}})$
 
 2. **価格デフレーター ($P_t$)**
    $$P_t = P_{t-1} \times (1 + \pi_{\text{clamped}})$$

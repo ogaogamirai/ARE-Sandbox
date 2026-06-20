@@ -161,8 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // ⑤ 労働市場就業調整ペナルティ L_penalty (最低賃金の累積的な上昇に応じて徐々に発生)
         const L_penalty = Math.max(0.0, 0.04 * ((state.W_min - 1.0) / 0.03) * 0.8);
 
-        // ⑥ 総名目労働所得の決定 (就業調整による手取り削減を内生化)
-        const Gross_Income = state.W_nominal * 3.6 * (1.0 - L_penalty);
+        // ⑥ 総名目労働所得の決定 (就業調整による手取り削減をパート比率10%で内生化)
+        const Gross_Income = state.W_nominal * 3.6 * (1.0 - 0.10 * L_penalty);
 
         // ⑦ 実質賃金指数 W_real,t の計算
         const W_real = state.W_nominal / state.P_def;
