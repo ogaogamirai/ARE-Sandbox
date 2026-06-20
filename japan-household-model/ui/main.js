@@ -176,7 +176,48 @@ document.addEventListener("DOMContentLoaded", () => {
           } else {
             productivity_boost = 0.001 * config.G_reskill;  // スキルアップ発現
           }
-          return history;
+        }
+
+        // ⑯ 税金と社会保険料
+        const Tax = Gross_Income * 0.10;
+        const Social_Premium = Gross_Income * (0.15 + config.dSocial);
+
+        // ⑰ 名目可処分所得 YD & 実質可処分所得 YD_real
+        const YD = Gross_Income + Inc_deposit - Cost_loan - Tax - Social_Premium + config.ETC;
+        const YD_real = YD / state.P_def;
+
+        // ⑲ 大中小企業賃金格差 Gap_wage
+        const dGap = 0.02 * (1 - config.alpha_pass) - 0.005 * config.dMW;
+        const Gap_wage = state.Gap_wage * (1 + dGap);
+
+        // 履歴に蓄積 (年率換算値に較正)
+        history.push({
+          step: period,
+          Y_potential: Y_potential_t,
+          Y_s,
+          Y_d,
+          gap_ratio: gap_ratio * 100, // パーセンテージ
+          pi_clamped: pi_clamped * 4 * 100, // 年率換算 %
+          pi_living: pi_living * 4 * 100,   // 年率換算 %
+          r_policy: r_policy * 100,         // 年率 %
+          R_long: R_long * 100,             // 年率 %
+          W_nominal: state.W_nominal,
+          W_real: W_real,             // 指数（初期100基準）
+          L_penalty: L_penalty * 100,       // 就業調整率 %
+          Inc_deposit,                      // 兆円フロー
+          Cost_loan,                        // 兆円フロー
+          YD,                               // 兆円フロー
+          YD_real,                          // 兆円フロー
+          Gap_wage: Gap_wage * 100,         // %
+          MC
+        });
+
+        // 次期の名目賃金指数の更新
+        const g_w = 0.0025 + 0.4 * pi_clamped + 0.1 * gap_ratio + 0.015 * (config.alpha_pass - 0.5) + 0.05 * config.dMW + productivity_boost;
+        state.W_nominal = state.W_nominal * (1 + g_w);
+      }
+
+      return history;
     }
 
     // 💡 凡例ごとの解説テキストマッピング
@@ -189,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "大中小賃金格差": "大企業と中小企業の賃金乖離率。中小企業による価格転嫁が滞る、または最低賃金の引き上げが遅れる場合に格差が拡大します。",
         "就業調整ペナルティ": "最低賃金の上昇に伴い、配偶者の扶養の範囲内（いわゆる年収の壁）に収めるために労働者が自発的に労働時間を抑制する割合。",
         "総供給 Ys": "マクロ経済における国内の総生産能力。急激な最低賃金引き上げ（人件費ショック）や金利上昇に伴う設備投資の冷え込みで収縮します。",
-        "総需要 Yd": "家計の実質所得や金利動向などに基づく経済全体の総需要額。実質賃金の増加で拡大し、利上げによる経済引き締めで収縮します。",
+        "総需要 Yd": "家計の実質所得や金利動向などに基づく経済全体の総demand。実質賃金の増加で拡大し、利上げによる経済引き締めで収縮します。",
         "マクロインフレ率": "マクロ経済の需給ギャップや、企業の最低賃金・金利負担増加に伴う限界費用（MC）の上昇から算出される、日本経済全体の年間インフレ率。",
         "政策金利": "日銀が設定する短期政策金利。インフレが目標（2%）を超えて上昇するか、景気が過熱するとテイラー・ルールに従い引き上げられます。",
         "長期金利": "政策金利に期間プレミアムを加味した市場金利。住宅ローン金利の基準となり、投資活動を通じてマクロ経済へ波及します。"
@@ -283,11 +324,60 @@ document.addEventListener("DOMContentLoaded", () => {
                     },
                     { 
                         label: "住宅ローン支払金利負担 (右軸: 兆円)", 
-                        data: history.map(h => h.Cost_loan)
-                        });
-    };
+                        data: history.map(h => h.Cost_loan), 
+                        borderColor: "#f43f5e", 
+                        borderDash: [5, 5], 
+                        backgroundColor: "transparent", 
+                        borderWidth: 2, 
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    },
+                    { 
+                        label: "預金利息受取 (右軸: 兆円)", 
+                        data: history.map(h => h.Inc_deposit), 
+                        borderColor: "#10b981", 
+                        borderDash: [2, 2], 
+                        backgroundColor: "transparent", 
+                        borderWidth: 2, 
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: '所得規模 (兆円)', color: '#9ca3af' },
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { color: '#9ca3af' } 
+                    },
+                    y1: { 
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: '金利収支負担 (兆円)', color: '#9ca3af' },
+                        min: 0, 
+                        grid: { drawOnChartArea: false }, 
+                        ticks: { color: '#9ca3af' } 
+                    },
+                    x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+                },
+                plugins: { 
+                    legend: { 
+                        labels: { color: '#f3f4f6' },
+                        onHover: legendHoverHandler,
+                        onLeave: legendLeaveHandler
+                    } 
+                }
+            }
+        });
 
-    const updateMetricsAndCharts = () => { // 3. 格差・就業調整および総需給チャート (左右2軸化)
+        // 3. 格差・就業調整および総需給チャート (左右2軸化)
         const chartOptionsLabor = {
             responsive: true,
             maintainAspectRatio: false,
