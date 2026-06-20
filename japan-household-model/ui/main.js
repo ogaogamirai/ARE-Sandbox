@@ -92,17 +92,27 @@ document.addEventListener("DOMContentLoaded", () => {
         ...custom_init
       };
 
-      // 🏁 第0期 (シミュレーション開始前・基準初期状態) の計算と登録
-      const init_r_policy = state.r_neutral;
-      const init_R_long = state.r_neutral + state.term_premium;
+      // 為替ショックの算出 (t=0時点から共通で使用)
+      const init_FX_shock = (config.E_current - state.E_init) / state.E_init;
+      
+      // 🏁 第0期 (シミュレーション開始前・基準初期状態) での為替ショックを考慮したマクロインフレと金利のハイドレーション
+      // マクロインフレ率への為替コストプッシュ波及 (四半期ベースで 0.04 倍)
+      const init_pi_quarter = (state.pi_target / 4) + 0.04 * init_FX_shock * (1 - config.Self_Suff);
+      const init_pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, init_pi_quarter));
+      
+      // 初期政策金利 (初期需給ギャップは0)
+      const init_r_policy = Math.max(0.0, Math.min(0.12, state.r_neutral + 1.2 * (init_pi_clamped - (state.pi_target / 4))));
+      const init_R_long = init_r_policy + state.term_premium;
+      
+      // 初期生活実感インフレ率 (マクロインフレにさらに 0.08 倍の直接為替影響を加算)
+      const init_pi_living_quarter = init_pi_clamped + 0.08 * init_FX_shock * (1 - config.Self_Suff);
+
       const init_Inc_deposit = state.Balance_deposit * (init_r_policy * 0.5) * 0.25;
       const init_Cost_loan = state.Balance_loan * (config.Loan_var * init_r_policy + (1.0 - config.Loan_var) * 0.015) * 0.25;
       const init_Gross_Income = state.W_nominal * 3.6; // 初期就業ペナルティは0
       const init_Tax = init_Gross_Income * 0.10;
       const init_Social = init_Gross_Income * (0.15 + config.dSocial);
       const init_YD = init_Gross_Income + init_Inc_deposit - init_Cost_loan - init_Tax - init_Social + config.ETC;
-      const init_FX_shock = (config.E_current - state.E_init) / state.E_init;
-      const init_pi_living = ((state.pi_target / 4) + 0.12 * init_FX_shock * (1 - config.Self_Suff)) * 4 * 100;
 
       history.push({
         step: 0,                            // 開始時点 (第0期)
@@ -110,10 +120,10 @@ document.addEventListener("DOMContentLoaded", () => {
         Y_s: state.Y_potential,
         Y_d: state.Y_potential,
         gap_ratio: 0.0,
-        pi_clamped: (state.pi_target) * 100, // 年率 % (2.0%)
-        pi_living: init_pi_living,           // シナリオ為替連動初期値
-        r_policy: init_r_policy * 100,       // 年率 % (1.0%)
-        R_long: init_R_long * 100,           // 年率 % (1.8%)
+        pi_clamped: init_pi_clamped * 4 * 100, // 連動初期値 (年率 %)
+        pi_living: init_pi_living_quarter * 4 * 100,  // 連動初期値 (年率 %)
+        r_policy: init_r_policy * 100,       // 連動初期値 (年率 %)
+        R_long: init_R_long * 100,           // 連動初期値 (年率 %)
         W_nominal: state.W_nominal,          // 100
         W_real: state.W_nominal,             // 100
         L_penalty: 0.0,                      // 初期就業調整は 0%
@@ -169,15 +179,15 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // 期待インフレ率に、需給ギャップ感応度(0.30、クランプ幅0.25)と、転嫁率連動型コストプッシュを加えてインフレ率を算出
         const cost_push = 0.03 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
-        const pi = 0.015 / 4 + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push;
+        const FX_shock = (config.E_current - state.E_init) / state.E_init;
+        const pi = 0.015 / 4 + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push + 0.04 * FX_shock * (1 - config.Self_Suff);
         const pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, pi)); // 年率-5%〜15%にクランプ
 
         // ⑪ デフレーター P_t の累積更新
         state.P_def = state.P_def * (1 + pi_clamped);
 
-        // ⑫ 生活実感インフレ率
-        const FX_shock = (config.E_current - state.E_init) / state.E_init;
-        const pi_living = pi_clamped + 0.12 * FX_shock * (1 - config.Self_Suff);
+        // ⑫ 生活実感インフレ率 (マクロインフレにさらに 0.08 倍の直接為替影響を加算)
+        const pi_living = pi_clamped + 0.08 * FX_shock * (1 - config.Self_Suff);
 
         // ⑬ テイラー・ルール (日銀の防衛的利上げ: 四半期インフレ率ベースで判定)
         const Target_pi_quarter = state.pi_target / 4;

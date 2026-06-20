@@ -105,10 +105,11 @@ graph TD
    $$gap\_ratio_t = \frac{Y_{\text{demand}, t-1} - Y_{s, t}}{Y_{s, t}}$$
 
 2. **インフレ率 ($\pi_t$)**
-   $$\pi_t = \pi_{\text{expected}, t} + \kappa \cdot \text{clamp}(gap\_ratio_t, -0.25, 0.25) + \lambda \max\left(0, \frac{MC_t - MC_{t-1}}{MC_{t-1}}\right) \times (2.0 \alpha_{\text{pass}})$$
+   $$\pi_t = \pi_{\text{expected}, t} + \kappa \cdot \text{clamp}(gap\_ratio_t, -0.25, 0.25) + \lambda \max\left(0, \frac{MC_t - MC_{t-1}}{MC_{t-1}}\right) \times (2.0 \alpha_{\text{pass}}) + \phi_{\text{fx}} \cdot \left( \frac{E_t - E_{\text{init}}}{E_{\text{init}}} \right) \times (1 - Self\_Suff)$$
    - $\pi_{\text{expected}, t}$: シナリオ基準で設定される期待（予想）インフレ率（約 1.5%〜2.0% 目標）
    - $\kappa = 0.10$（需給ギャップインフレ感応度。供給不足にともなうディマンド・プル圧力の表現を強めつつ、過度な振幅を抑え0.10へマイルド化）
    - $\lambda = 0.12$（限界費用インフレ感応度。コストプッシュインフレを表現。価格転嫁率 $\alpha_{\text{pass}}$ に比例。過敏な急騰を防ぐため0.12へ平滑化）
+   - $\phi_{\text{fx}} = 0.16$（マクロインフレへの為替ショック感応度。輸入物価高によるコストプッシュを表現。四半期ベースで 0.04）
    - $\text{clamp}(gap\_ratio_t, -0.25, 0.25)$: 深刻な供給不足時の物不足によるインフレを表現するため、クランプ上限を15%から25%に緩和。
    - $\pi_{\text{clamped}} = \max(-0.05, \min(0.25, \pi_t))$: デフレ螺旋と超インフレ発散を防ぐための安全ガード（下限-5%、上限25%）
 
@@ -184,7 +185,7 @@ graph TD
 
 4. **生活実感インフレ率 ($\pi_{\text{living}, t}$)**
    食料安全保障（食料自給率 $Self\_Suff$）および為替レート $E_t$ 変動を加味した、家計が実際に直面する生活費インフレ率です。第0期（初期値）においても同様の為替・自給率補正が適用され、シナリオ切り替え時の不連続ギャップが防止されます。
-   $$\pi_{\text{living}, t} = \pi_{\text{clamped}} + 0.12 \times \left( \frac{E_t - E_{\text{init}}}{E_{\text{init}}} \right) \times (1 - Self\_Suff)$$
+   $$\pi_{\text{living}, t} = \pi_{\text{clamped}} + 0.24 \times \left( \frac{E_t - E_{\text{init}}}{E_{\text{init}}} \right) \times (1 - Self\_Suff)$$
    - $Self\_Suff$: 食料自給率スライダー (初期値 0.38)
 
 ### 2.8 労働市場・就業調整・リスキリング動学
