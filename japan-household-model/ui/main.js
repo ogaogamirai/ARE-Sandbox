@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const W_real = state.W_nominal / state.P_def;
 
         // ⑧ 総需要量 Y_demand,t の計算 (実質賃金所得効果に加え、給付付き税額控除の需要押し上げ効果0.8倍をマウント)
-        const Demand_R_impact = 1.0 * (R_prev - state.R_neutral);
+        const Demand_R_impact = 0.6 * (R_prev - state.R_neutral);
         const Demand_W_impact = 0.2 * ((W_real - 100.0) / 100.0);
         const Demand_ETC_impact = 0.8 * (config.ETC / Y_potential_t);
         const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact + Demand_ETC_impact);
@@ -166,15 +166,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const MC_growth = MC_prev > 0 ? (MC - MC_prev) / MC_prev : 0;
         
         // 期待インフレ率に、需給ギャップ感応度(0.30、クランプ幅0.25)と、転嫁率連動型コストプッシュを加えてインフレ率を算出
-        const cost_push = 0.1 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
-        const pi = 0.015 / 4 + 0.30 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push;
+        const cost_push = 0.06 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
+        const pi = 0.015 / 4 + 0.20 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push;
         const pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, pi)); // 年率-5%〜15%にクランプ
 
         // ⑪ デフレーター P_t の累積更新
         state.P_def = state.P_def * (1 + pi_clamped);
 
         // ⑫ 生活実感インフレ率
-        const FX_shock = Math.max(0, (config.E_current - state.E_init) / state.E_init);
+        const FX_shock = (config.E_current - state.E_init) / state.E_init;
         const pi_living = pi_clamped + 0.12 * FX_shock * (1 - config.Self_Suff);
 
         // ⑬ テイラー・ルール (日銀の防衛的利上げ: 四半期インフレ率ベースで判定)
@@ -262,6 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "就業調整ペナルティ": "最低賃金の上昇に伴い、配偶者の扶養の範囲内（いわゆる年収の壁）に収めるために労働者が自発的に労働時間を抑制する割合。",
         "総供給 Ys": "マクロ経済における国内の総生産能力。急激な最低賃金引き上げ（人件費ショック）や金利上昇に伴う設備投資の冷え込みで収縮します。",
         "総需要 Yd": "家計の実質所得や金利動向などに基づく経済全体の総demand。実質賃金の増加で拡大し、利上げによる経済引き締めで収縮します。",
+        "生活実感インフレ率": "為替レート（円安・円高影響）や食料自給率を加味し、家計が日常の消費生活において実際に直面するインフレ率。",
         "マクロインフレ率": "マクロ経済の需給ギャップや、企業の最低賃金・金利負担増加に伴う限界費用（MC）の上昇から算出される、日本経済全体の年間インフレ率。",
         "政策金利": "日銀が設定する短期政策金利。インフレが目標（2%）を超えて上昇するか、景気が過熱するとテイラー・ルールに従い引き上げられます。",
         "長期金利": "政策金利に期間プレミアムを加味した市場金利。住宅ローン金利の基準となり、投資活動を通じてマクロ経済へ波及します。",
@@ -448,7 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     { label: "就業調整ペナルティ (%)", data: history.map(h => h.L_penalty), borderColor: "#f59e0b", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "失業率 (%)", data: history.map(h => h.Unemployment_Rate), borderColor: "#ec4899", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "総供給 Ys (右軸: 兆円)", data: history.map(h => h.Y_s), borderColor: "#10b981", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' },
-                    { label: "総供給 Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
+                    { label: "総需要 Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
                 ]
             },
             options: chartOptionsLabor
@@ -461,6 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 labels: history.map(h => h.step === 0 ? "初期" : `${h.step}期`),
                 datasets: [
                     { label: "マクロインフレ率 (年率 %)", data: history.map(h => h.pi_clamped), borderColor: "#eab308", backgroundColor: "transparent", borderWidth: 2, tension: 0.1 },
+                    { label: "生活実感インフレ率 (年率 %)", data: history.map(h => h.pi_living), borderColor: "#f97316", backgroundColor: "transparent", borderWidth: 2, tension: 0.1 },
                     { label: "政策金利 (年率 %)", data: history.map(h => h.r_policy), borderColor: "#3b82f6", backgroundColor: "transparent", borderWidth: 2, tension: 0.1 },
                     { label: "長期金利 (年率 %)", data: history.map(h => h.R_long), borderColor: "#a855f7", backgroundColor: "transparent", borderWidth: 2, tension: 0.1 }
                 ]
@@ -558,8 +560,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         charts.macro.data.labels = labels;
         charts.macro.data.datasets[0].data = history.map(h => h.pi_clamped);
-        charts.macro.data.datasets[1].data = history.map(h => h.r_policy);
-        charts.macro.data.datasets[2].data = history.map(h => h.R_long);
+        charts.macro.data.datasets[1].data = history.map(h => h.pi_living);
+        charts.macro.data.datasets[2].data = history.map(h => h.r_policy);
+        charts.macro.data.datasets[3].data = history.map(h => h.R_long);
         charts.macro.update();
     };
 
