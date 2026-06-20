@@ -145,7 +145,7 @@ graph TD
    $$W_{\text{nominal}, t+1} = W_{\text{nominal}, t} \times (1 + g_{w, t})$$
    $$g_{w, t} = 0.0025 + 0.4 \times \pi_{\text{clamped}} + 0.1 \times gap\_ratio_t + 0.015 \times (\alpha_{\text{pass}} - 0.5) + \text{最賃寄与}_{t+1}$$
    - $0.0025$: 四半期基準名目賃金上昇率 (年率約1.0%相当)
-   - $\text{最賃寄与}_{t+1} = 0.05 \times \Delta MW$ (最低賃金上昇による底上げ効果)
+   - $\text{最賃寄与}_{t+1} = 0.12 \times \Delta MW$ (最低賃金上昇による底上げ効果。ペナルティによる所得減少を適切に相殺・超克するため0.12へ調整)
 
 2. **大中小企業賃金格差 ($Gap_{\text{wage}, t}$)**
    大企業賃金と中小企業賃金の乖離率です。

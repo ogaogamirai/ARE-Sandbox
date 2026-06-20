@@ -143,10 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
       for (let t = 0; t < steps; t++) {
         const period = t + 1;
 
-        // ① 最低賃金指数の累積更新
-        state.W_min = state.W_min * Math.pow(1 + config.dMW, dt);
-
-        // ② 企業の限界費用 MC_t の計算 (金利の寄与を実態に即して 0.1 にマイルド化)
+        // ① 企業の限界費用 MC_t の計算 (金利の寄与を実態に即して 0.1 にマイルド化)
         const R_prev = t > 0 ? (history[t].R_long / 100) : init_R_long; // 前期の長期金利を元の割合にデスケール
         const MC = 0.005 * state.W_min + 0.1 * R_prev;
 
@@ -186,8 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const pi = (state.pi_target / 4) + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push + 0.04 * FX_shock * (1 - config.Self_Suff);
         const pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, pi)); // 年率-5%〜15%にクランプ
 
-        // ⑪ デフレーター P_t の累積更新
-        state.P_def = state.P_def * (1 + pi_clamped);
+        // ⑪ デフレーター P_t の累積更新 (次期計算用への同期のため、ループ末尾へ移動)
 
         // ⑫ 生活実感インフレ率 (マクロインフレにさらに 0.08 倍の直接為替影響を加算)
         const pi_living = pi_clamped + 0.08 * FX_shock * (1 - config.Self_Suff);
@@ -258,9 +254,11 @@ document.addEventListener("DOMContentLoaded", () => {
           Unemployment_Rate                 // %
         });
 
-        // 次期の名目賃金指数の更新
-        const g_w = 0.0025 + 0.4 * pi_clamped + 0.1 * gap_ratio + 0.015 * (config.alpha_pass - 0.5) + 0.05 * config.dMW + productivity_boost;
+        // 次期の名目賃金指数、デフレーター、および最低賃金の同期更新
+        const g_w = 0.0025 + 0.4 * pi_clamped + 0.1 * gap_ratio + 0.015 * (config.alpha_pass - 0.5) + 0.12 * config.dMW + productivity_boost;
         state.W_nominal = state.W_nominal * (1 + g_w);
+        state.P_def = state.P_def * (1 + pi_clamped);
+        state.W_min = state.W_min * Math.pow(1 + config.dMW, dt);
       }
 
       return history;
