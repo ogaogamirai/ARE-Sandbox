@@ -91,12 +91,12 @@ body {
 .control-panel {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 12px;
 }
 
 .control-section {
     border-bottom: 1px solid var(--color-border);
-    padding-bottom: 20px;
+    padding-bottom: 10px;
 }
 
 .control-section:last-child {
@@ -114,10 +114,10 @@ body {
 }
 
 .control-group {
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
 .control-group:last-child {
@@ -320,7 +320,7 @@ select:focus {
 /* 📉 6. チャートエリア */
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     flex: 1;
     min-height: 0;
@@ -437,4 +437,43 @@ select:focus {
 
 .btn-export:active {
     transform: translateY(1px);
+}
+
+/* 🌌 8. サイドバー内 HUD カスタマイズ (縦並び・2列グリッド) */
+.sidebar .hud-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+    margin-top: -12px;
+    flex-shrink: 0;
+}
+
+.sidebar .hud-card {
+    padding: 6px 8px;
+    border-radius: var(--border-radius-md);
+    background-color: rgba(31, 41, 55, 0.5); /* やや透過してサイドバーに馴染ませる */
+}
+
+.sidebar .hud-card:hover {
+    transform: none; /* サイドバー内ではホバー浮き上がりを抑制 */
+}
+
+.sidebar .hud-title {
+    font-size: 9px;
+    margin-bottom: 2px;
+    letter-spacing: 0px;
+}
+
+.sidebar .hud-value {
+    font-size: 13px;
+    margin-bottom: 0px;
+}
+
+.sidebar .hud-value .unit {
+    font-size: 9px;
+}
+
+.sidebar .hud-delta {
+    font-size: 9px;
 }

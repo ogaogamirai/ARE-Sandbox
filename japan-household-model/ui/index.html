@@ -21,6 +21,45 @@
                 <div class="subtitle">v1.0.0 "Living/Household"</div>
             </div>
 
+            <!-- 現在の生活指標HUD (Living Indicator HUD) -->
+            <section class="hud-container">
+                <div class="hud-card" id="hud-wage">
+                    <div class="hud-title">平均実質賃金</div>
+                    <div class="hud-value">100.0 <span class="unit">指数</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-yd">
+                    <div class="hud-title">実質可処分所得</div>
+                    <div class="hud-value">360.0 <span class="unit">兆円</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-loan">
+                    <div class="hud-title">ローン支払負担</div>
+                    <div class="hud-value">0.31 <span class="unit">兆円</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-gap">
+                    <div class="hud-title">大中小賃金格差</div>
+                    <div class="hud-value">30.0 <span class="unit">%</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-penalty">
+                    <div class="hud-title">就業調整ペナルティ</div>
+                    <div class="hud-value">0.00 <span class="unit">%</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+
+                <div class="hud-card" id="hud-inflation">
+                    <div class="hud-title">実感インフレ率</div>
+                    <div class="hud-value">1.00 <span class="unit">%</span></div>
+                    <div class="hud-delta text-neutral">t=0 基準</div>
+                </div>
+            </section>
+
             <nav class="control-panel">
                 <!-- マクロ経済ベースシナリオ設定 -->
                 <section class="control-section">
@@ -122,44 +161,7 @@
                 </div>
             </header>
 
-            <!-- 現在の生活指標HUD (Living Indicator HUD) -->
-            <section class="hud-container">
-                <div class="hud-card" id="hud-wage">
-                    <div class="hud-title">平均実質賃金</div>
-                    <div class="hud-value">100.0 <span class="unit">指数</span></div>
-                    <div class="hud-delta text-neutral">t=0 基準</div>
-                </div>
 
-                <div class="hud-card" id="hud-yd">
-                    <div class="hud-title">実質可処分所得</div>
-                    <div class="hud-value">360.0 <span class="unit">兆円</span></div>
-                    <div class="hud-delta text-neutral">t=0 基準</div>
-                </div>
-
-                <div class="hud-card" id="hud-loan">
-                    <div class="hud-title">ローン支払金利負担</div>
-                    <div class="hud-value">0.31 <span class="unit">兆円/期</span></div>
-                    <div class="hud-delta text-neutral">t=0 基準</div>
-                </div>
-
-                <div class="hud-card" id="hud-gap">
-                    <div class="hud-title">大中小賃金格差</div>
-                    <div class="hud-value">30.0 <span class="unit">%</span></div>
-                    <div class="hud-delta text-neutral">t=0 基準</div>
-                </div>
-
-                <div class="hud-card" id="hud-penalty">
-                    <div class="hud-title">就業調整ペナルティ</div>
-                    <div class="hud-value">0.00 <span class="unit">%</span></div>
-                    <div class="hud-delta text-neutral">t=0 基準</div>
-                </div>
-
-                <div class="hud-card" id="hud-inflation">
-                    <div class="hud-title">生活実感インフレ率</div>
-                    <div class="hud-value">1.00 <span class="unit">%</span></div>
-                    <div class="hud-delta text-neutral">t=0 基準</div>
-                </div>
-            </section>
 
             <!-- グラフエリア -->
             <section class="charts-grid">
@@ -189,6 +191,6 @@
             </section>
         </main>
     </div>
-    <script src="main.js?v=1.0.7"></script>
+    <script src="main.js?v=1.0.8"></script>
 </body>
 </html>

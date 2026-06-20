@@ -127,8 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const R_impact = 0.5 * (R_prev - state.R_neutral);
         const Y_s = Y_potential_t * Math.max(0.5, 1.0 - W_min_impact - R_impact);
 
-        // ⑤ 労働市場就業調整ペナルティ L_penalty
-        const L_penalty = Math.max(0.0, 0.04 * (config.dMW / 0.03) * 0.8);
+        // ⑤ 労働市場就業調整ペナルティ L_penalty (最低賃金の累積的な上昇に応じて徐々に発生)
+        const L_penalty = Math.max(0.0, 0.04 * ((state.W_min - 1.0) / 0.03) * 0.8);
 
         // ⑥ 総名目労働所得の決定 (就業調整による手取り削減を内生化)
         const Gross_Income = state.W_nominal * 3.6 * (1.0 - L_penalty);
@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
           r_policy: r_policy * 100,         // 年率 %
           R_long: R_long * 100,             // 年率 %
           W_nominal: state.W_nominal,
-          W_real: W_real * 100,             // 指数（初期100）
+          W_real: W_real,             // 指数（初期100基準）
           L_penalty: L_penalty * 100,       // 就業調整率 %
           Inc_deposit,                      // 兆円フロー
           Cost_loan,                        // 兆円フロー
