@@ -176,49 +176,59 @@ document.addEventListener("DOMContentLoaded", () => {
           } else {
             productivity_boost = 0.001 * config.G_reskill;  // スキルアップ発現
           }
-        }
-
-        // ⑯ 税金と社会保険料
-        const Tax = Gross_Income * 0.10;
-        const Social_Premium = Gross_Income * (0.15 + config.dSocial);
-
-        // ⑰ 名目可処分所得 YD & 実質可処分所得 YD_real
-        const YD = Gross_Income + Inc_deposit - Cost_loan - Tax - Social_Premium + config.ETC;
-        const YD_real = YD / state.P_def;
-
-        // ⑲ 大中小企業賃金格差 Gap_wage
-        const dGap = 0.02 * (1 - config.alpha_pass) - 0.005 * config.dMW;
-        const Gap_wage = state.Gap_wage * (1 + dGap);
-
-        // 履歴に蓄積 (年率換算値に較正)
-        history.push({
-          step: period,
-          Y_potential: Y_potential_t,
-          Y_s,
-          Y_d,
-          gap_ratio: gap_ratio * 100, // パーセンテージ
-          pi_clamped: pi_clamped * 4 * 100, // 年率換算 %
-          pi_living: pi_living * 4 * 100,   // 年率換算 %
-          r_policy: r_policy * 100,         // 年率 %
-          R_long: R_long * 100,             // 年率 %
-          W_nominal: state.W_nominal,
-          W_real: W_real,             // 指数（初期100基準）
-          L_penalty: L_penalty * 100,       // 就業調整率 %
-          Inc_deposit,                      // 兆円フロー
-          Cost_loan,                        // 兆円フロー
-          YD,                               // 兆円フロー
-          YD_real,                          // 兆円フロー
-          Gap_wage: Gap_wage * 100,         // %
-          MC
-        });
-
-        // 次期の名目賃金指数の更新
-        const g_w = 0.0025 + 0.4 * pi_clamped + 0.1 * gap_ratio + 0.015 * (config.alpha_pass - 0.5) + 0.05 * config.dMW + productivity_boost;
-        state.W_nominal = state.W_nominal * (1 + g_w);
-      }
-
-      return history;
+          return history;
     }
+
+    // 💡 凡例ごとの解説テキストマッピング
+    const legendDescriptions = {
+        "平均名目賃金指数": "物価変動を考慮しない名目上の平均賃金指数（初期値100基準）。",
+        "平均実質賃金指数": "物価変動の影響を除外し、実際の購買力を表した実質的な賃金指数。これが上昇すると生活の購買力が向上します。",
+        "実質可処分所得": "家計所得から所得税・社会保険料、住宅ローン利払いを差し引き、預金金利や直接給付金を加えた上で物価変動を調整した、手残り所得の実質総額。",
+        "住宅ローン支払金利負担": "変動金利ローンを組んでいる家計の金利支払総額。政策金利の上昇に比例して負担が急増します。",
+        "預金利息受取": "家計の貯蓄預金から得られる利息の総受取額。金利が引き上げられると受取額が増加し、家計のプラス要因となります。",
+        "大中小賃金格差": "大企業と中小企業の賃金乖離率。中小企業による価格転嫁が滞る、または最低賃金の引き上げが遅れる場合に格差が拡大します。",
+        "就業調整ペナルティ": "最低賃金の上昇に伴い、配偶者の扶養の範囲内（いわゆる年収の壁）に収めるために労働者が自発的に労働時間を抑制する割合。",
+        "総供給 Ys": "マクロ経済における国内の総生産能力。急激な最低賃金引き上げ（人件費ショック）や金利上昇に伴う設備投資の冷え込みで収縮します。",
+        "総需要 Yd": "家計の実質所得や金利動向などに基づく経済全体の総需要額。実質賃金の増加で拡大し、利上げによる経済引き締めで収縮します。",
+        "マクロインフレ率": "マクロ経済の需給ギャップや、企業の最低賃金・金利負担増加に伴う限界費用（MC）の上昇から算出される、日本経済全体の年間インフレ率。",
+        "政策金利": "日銀が設定する短期政策金利。インフレが目標（2%）を超えて上昇するか、景気が過熱するとテイラー・ルールに従い引き上げられます。",
+        "長期金利": "政策金利に期間プレミアムを加味した市場金利。住宅ローン金利の基準となり、投資活動を通じてマクロ経済へ波及します。"
+    };
+
+    // 凡例テキストを正規化してディクショナリキーにマッチングさせる
+    const cleanLegendText = (text) => {
+        return text.replace(/\s*[\(（].*$/, "").trim();
+    };
+
+    // 共通の Legend ホバー・リーブハンドラ
+    const legendHoverHandler = (event, legendItem) => {
+        const tooltip = document.getElementById("legend-tooltip");
+        if (!tooltip) return;
+
+        const key = cleanLegendText(legendItem.text);
+        const desc = legendDescriptions[key];
+
+        if (desc) {
+            tooltip.innerHTML = `<strong>${key}</strong><p>${desc}</p>`;
+            tooltip.style.display = "block";
+            // マウスポインターのページ絶対座標にポップアップを配置 (スクロール・ズーム対応)
+            tooltip.style.left = (event.native.pageX + 15) + "px";
+            tooltip.style.top = (event.native.pageY + 15) + "px";
+        }
+        if (event.native.target) {
+            event.native.target.style.cursor = 'pointer';
+        }
+    };
+
+    const legendLeaveHandler = (event) => {
+        const tooltip = document.getElementById("legend-tooltip");
+        if (tooltip) {
+            tooltip.style.display = "none";
+        }
+        if (event.native.target) {
+            event.native.target.style.cursor = 'default';
+        }
+    };
 
     // 📈 4. チャートインスタンスの管理 (HTMLのIDに完全適合)
     const initCharts = (history) => {
@@ -235,7 +245,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } }
             },
             plugins: {
-                legend: { labels: { color: '#f3f4f6' } }
+                legend: { 
+                    labels: { color: '#f3f4f6' },
+                    onHover: legendHoverHandler,
+                    onLeave: legendLeaveHandler
+                }
             }
         };
 
@@ -269,55 +283,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     },
                     { 
                         label: "住宅ローン支払金利負担 (右軸: 兆円)", 
-                        data: history.map(h => h.Cost_loan), 
-                        borderColor: "#f43f5e", 
-                        borderDash: [5, 5], 
-                        backgroundColor: "transparent", 
-                        borderWidth: 2, 
-                        tension: 0.1,
-                        yAxisID: 'y1'
-                    },
-                    { 
-                        label: "預金利息受取 (右軸: 兆円)", 
-                        data: history.map(h => h.Inc_deposit), 
-                        borderColor: "#10b981", 
-                        borderDash: [2, 2], 
-                        backgroundColor: "transparent", 
-                        borderWidth: 2, 
-                        tension: 0.1,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { 
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: { display: true, text: '所得規模 (兆円)', color: '#9ca3af' },
-                        grid: { color: 'rgba(255,255,255,0.05)' }, 
-                        ticks: { color: '#9ca3af' } 
-                    },
-                    y1: { 
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: { display: true, text: '金利収支負担 (兆円)', color: '#9ca3af' },
-                        min: 0, 
-                        // max: 10 を撤廃し、完全にオートスケール化して微細な変動の動きを認識しやすくする
-                        grid: { drawOnChartArea: false }, 
-                        ticks: { color: '#9ca3af' } 
-                    },
-                    x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
-                },
-                plugins: { legend: { labels: { color: '#f3f4f6' } } }
-            }
-        });
+                        data: history.map(h => h.Cost_loan)
+                        });
+    };
 
-        // 3. 格差・就業調整および総需給チャート (左右2軸化)
+    const updateMetricsAndCharts = () => { // 3. 格差・就業調整および総需給チャート (左右2軸化)
         const chartOptionsLabor = {
             responsive: true,
             maintainAspectRatio: false,
@@ -339,7 +309,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             },
             plugins: {
-                legend: { labels: { color: '#f3f4f6' } }
+                legend: { 
+                    labels: { color: '#f3f4f6' },
+                    onHover: legendHoverHandler,
+                    onLeave: legendLeaveHandler
+                }
             }
         };
 
@@ -351,7 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     { label: "大中小賃金格差 (%)", data: history.map(h => h.Gap_wage), borderColor: "#6366f1", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "就業調整ペナルティ (%)", data: history.map(h => h.L_penalty), borderColor: "#f59e0b", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "総供給 Ys (右軸: 兆円)", data: history.map(h => h.Y_s), borderColor: "#10b981", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' },
-                    { label: "総需要 Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
+                    { label: "総供給 Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
                 ]
             },
             options: chartOptionsLabor
@@ -381,7 +355,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     },
                     x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
                 },
-                plugins: { legend: { labels: { color: '#f3f4f6' } } }
+                plugins: { 
+                    legend: { 
+                        labels: { color: '#f3f4f6' },
+                        onHover: legendHoverHandler,
+                        onLeave: legendLeaveHandler
+                    } 
+                }
             }
         });
     };

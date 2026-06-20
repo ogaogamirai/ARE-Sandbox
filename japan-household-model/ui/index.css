@@ -477,3 +477,32 @@ select:focus {
 .sidebar .hud-delta {
     font-size: 9px;
 }
+
+/* 🌌 9. 凡例ホバーポップアップ解説用ツールチップ */
+.legend-tooltip {
+    background-color: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--border-radius-md);
+    padding: 10px 14px;
+    max-width: 280px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--color-text-main);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    pointer-events: none; /* マウスを透過させてドラッグや再ホバーを妨げない */
+    backdrop-filter: blur(4px);
+    transition: opacity 0.15s ease;
+}
+
+.legend-tooltip strong {
+    display: block;
+    font-size: 12px;
+    color: var(--color-accent-amber);
+    margin-bottom: 4px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.legend-tooltip p {
+    margin: 0;
+    color: var(--color-text-muted);
+}
