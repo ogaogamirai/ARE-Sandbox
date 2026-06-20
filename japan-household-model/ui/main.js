@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sliderEtc: document.getElementById("slider-etc"),
         sliderReskill: document.getElementById("slider-reskill"),
         sliderLoan: document.getElementById("slider-loan"),
+        btnExport: document.getElementById("btn-export-csv"),
         
         valPass: document.getElementById("val-pass"),
         valMw: document.getElementById("val-mw"),
@@ -299,7 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         title: { display: true, text: '所得規模 (兆円)', color: '#9ca3af' },
                         grid: { color: 'rgba(255,255,255,0.05)' }, 
                         ticks: { color: '#9ca3af' } 
-                        // オートスケールにして可処分所得の微細な変化を検出しやすくする
                     },
                     y1: { 
                         type: 'linear',
@@ -307,7 +307,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         position: 'right',
                         title: { display: true, text: '金利収支負担 (兆円)', color: '#9ca3af' },
                         min: 0, 
-                        // maxの固定制限を撤去してオートスケールにし、金利負担の動きを際立たせる
                         grid: { drawOnChartArea: false }, 
                         ticks: { color: '#9ca3af' } 
                     },
@@ -351,7 +350,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     { label: "大中小賃金格差 (%)", data: history.map(h => h.Gap_wage), borderColor: "#6366f1", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "就業調整ペナルティ (%)", data: history.map(h => h.L_penalty), borderColor: "#f59e0b", backgroundColor: "transparent", borderWidth: 2, tension: 0.1, yAxisID: 'y' },
                     { label: "総供給 Ys (右軸: 兆円)", data: history.map(h => h.Y_s), borderColor: "#10b981", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' },
-                    { label: "総ジューヨ Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
+                    { label: "総需要 Yd (右軸: 兆円)", data: history.map(h => h.Y_d), borderColor: "#3b82f6", borderDash: [3, 3], backgroundColor: "transparent", borderWidth: 1.5, tension: 0.1, yAxisID: 'y1' }
                 ]
             },
             options: chartOptionsLabor
@@ -459,6 +458,73 @@ document.addEventListener("DOMContentLoaded", () => {
         charts.macro.update();
     };
 
+    // 📊 CSVエクスポート処理
+    const exportToCSV = (history) => {
+        // CSVのヘッダー定義
+        const headers = [
+            "期 (Period)",
+            "潜在GDP (Y_potential / 兆円)",
+            "総供給 (Ys / 兆円)",
+            "総ジャンヨ (Yd / 兆円)",
+            "需給ギャップ (gap_ratio / %)",
+            "マクロインフレ率 (pi_clamped / 年率 %)",
+            "生活実感インフレ率 (pi_living / 年率 %)",
+            "政策金利 (r_policy / 年率 %)",
+            "長期金利 (R_long / 年率 %)",
+            "平均名目賃金指数 (W_nominal / 初期100)",
+            "平均実質賃金指数 (W_real / 初期100)",
+            "就業調整ペナルティ (L_penalty / %)",
+            "預金利息受取 (Inc_deposit / 兆円)",
+            "住宅ローン支払負担 (Cost_loan / 兆円)",
+            "名目可処分所得 (YD / 兆円)",
+            "実質可処分所得 (YD_real / 兆円)",
+            "大中小企業賃金格差 (Gap_wage / %)",
+            "限界費用 (MC)"
+        ];
+
+        // 各行のデータ生成
+        const rows = history.map(h => [
+            h.step === 0 ? "初期" : `${h.step}期`,
+            h.Y_potential.toFixed(3),
+            h.Y_s.toFixed(3),
+            h.Y_d.toFixed(3),
+            h.gap_ratio.toFixed(2),
+            h.pi_clamped.toFixed(2),
+            h.pi_living.toFixed(2),
+            h.r_policy.toFixed(2),
+            h.R_long.toFixed(2),
+            h.W_nominal.toFixed(2),
+            h.W_real.toFixed(2),
+            h.L_penalty.toFixed(2),
+            h.Inc_deposit.toFixed(4),
+            h.Cost_loan.toFixed(4),
+            h.YD.toFixed(3),
+            h.YD_real.toFixed(3),
+            h.Gap_wage.toFixed(2),
+            h.MC.toFixed(6)
+        ]);
+
+        // CSV文字列の結合 (BOM付き UTF-8 で Excel の文字化け防止)
+        const csvContent = "\uFEFF" + [
+            headers.join(","),
+            ...rows.map(row => row.join(","))
+        ].join("\n");
+
+        // ダウンロード処理の実行
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        
+        // シナリオ名を取得してファイル名に反映
+        const scenario = elements.scenario.value;
+        link.setAttribute("download", `japan_household_simulation_${scenario}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     // 🔄 6. UI同期・更新処理
     const handleSliderUpdate = () => {
         config.alpha_pass = parseFloat(elements.sliderPass.value);
@@ -513,6 +579,13 @@ document.addEventListener("DOMContentLoaded", () => {
             control.addEventListener("input", handleSliderUpdate);
             control.addEventListener("change", handleSliderUpdate);
         });
+
+        if (elements.btnExport) {
+            elements.btnExport.addEventListener("click", () => {
+                const history = runSimulation();
+                exportToCSV(history);
+            });
+        }
     };
 
     // 🚀 8. アプリケーション初期化起動
