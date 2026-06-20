@@ -140,6 +140,46 @@
                         <div class="range-hint">金利上昇時の家計利払い感応度</div>
                     </div>
                 
+                      <!-- T=0 基準初期値のカスタマイズ (直近の日本指標をデフォルトマウント) -->
+                      <div class="control-group" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                          <div class="accordion-section">
+                              <button type="button" class="accordion-trigger" id="btn-toggle-initials">
+                                  <h3>⚙️ T=0 初期値設定 (直近日本基準)</h3>
+                                  <span class="arrow-icon">▼</span>
+                              </button>
+                              <div class="accordion-content" id="initials-content" style="display: none;">
+                                  <div class="control-group">
+                                      <label for="init-gdp">潜在GDP基準値 (兆円)</label>
+                                      <input type="number" id="init-gdp" min="100" max="2000" step="10" value="600">
+                                  </div>
+                                  <div class="control-group">
+                                      <label for="init-deposit">家計貯蓄預金残高 (兆円)</label>
+                                      <input type="number" id="init-deposit" min="50" max="3000" step="10" value="1140">
+                                  </div>
+                                  <div class="control-group">
+                                      <label for="init-loan">住宅ローン残高 (兆円)</label>
+                                      <input type="number" id="init-loan" min="10" max="1000" step="5" value="220">
+                                  </div>
+                                  <div class="control-group">
+                                      <label for="init-unemployment">完全失業率 (%)</label>
+                                      <input type="number" id="init-unemployment" min="1.5" max="15.0" step="0.1" value="2.5">
+                                  </div>
+                                  <div class="control-group">
+                                      <label for="init-fx">基準為替レート (円/$)</label>
+                                      <input type="number" id="init-fx" min="80" max="250" step="1" value="150">
+                                  </div>
+                                  <div class="control-group">
+                                      <label for="init-social">基準社会保険料率 (%)</label>
+                                      <input type="number" id="init-social" min="5.0" max="40.0" step="0.5" value="15.0">
+                                  </div>
+                                  <div class="control-group">
+                                      <label for="init-gap">基準大中小企業賃金格差 (%)</label>
+                                      <input type="number" id="init-gap" min="5.0" max="80.0" step="0.5" value="30.0">
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+
                       <!-- CSVエクスポート -->
                       <div class="control-group" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
                           <button id="btn-export-csv" class="btn-export">
@@ -194,6 +234,6 @@
     <!-- 凡例ホバーポップアップ解説用コンテナ -->
     <div id="legend-tooltip" class="legend-tooltip" style="display: none; position: absolute; z-index: 1000;"></div>
 
-    <script src="main.js?v=1.3.0"></script>
+    <script src="main.js?v=1.4.0"></script>
 </body>
 </html>

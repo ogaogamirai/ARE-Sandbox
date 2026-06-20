@@ -506,3 +506,65 @@ select:focus {
     margin: 0;
     color: var(--color-text-muted);
 }
+
+/* ⚙️ T=0 初期値設定アコーディオンのスタイル */
+.accordion-section {
+    width: 100%;
+}
+.accordion-trigger {
+    width: 100%;
+    background: transparent;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+    color: var(--color-text-main);
+    outline: none;
+    text-align: left;
+}
+.accordion-trigger h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.accordion-trigger .arrow-icon {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    transition: transform 0.2s ease;
+}
+.accordion-content {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(31, 41, 55, 0.4);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+.accordion-content .control-group {
+    margin-bottom: 10px;
+}
+.accordion-content .control-group:last-child {
+    margin-bottom: 0;
+}
+.accordion-content label {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+    display: block;
+}
+.accordion-content input[type="number"] {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text-main);
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    outline: none;
+    box-sizing: border-box;
+}
+.accordion-content input[type="number"]:focus {
+    border-color: var(--color-accent-blue);
+    background: rgba(0, 0, 0, 0.4);
+}

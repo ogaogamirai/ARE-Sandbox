@@ -6,11 +6,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. 初期状態ハイドレーション (基準パラメータ)
     const INITIAL_STATE = {
       W_nominal: 100.0,         // 平均名目賃金指数 (初期値100)
-      Balance_loan: 80.0,       // 住宅ローン残高 (兆円)
-      Balance_deposit: 200.0,   // 家計貯蓄預金残高 (兆円)
-      tau_social: 0.15,         // 基準社会保険料率 15.0%
-      Gap_wage: 0.30,           // 基準大中小企業賃金乖離率 30%
-      Y_potential: 600.0,       // 潜在GDP基準値 (兆円)
+      Balance_loan: 220.0,       // 日本の住宅ローン残高実績値 (兆円)
+      Balance_deposit: 1140.0,   // 日本の家計貯蓄預金残高実績値 (兆円)
+      tau_social: 0.15,         // 日本の基準社会保険料率 (個人負担分 15.0%)
+      Gap_wage: 0.30,           // 日本の基準大中小企業賃金乖離率 (30.0%)
+      Y_potential: 600.0,       // 日本の潜在GDP基準値 (約600兆円)
       W_min: 1.0,               // 基準最低賃金指数 (初期値1.0)
       P_def: 1.0,               // 価格デフレーター初期値
       R_neutral: 0.015,         // 中立長期金利 1.5% (年率)
@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
       pi_target: 0.020,         // 年間目標インフレ率 2.0%
       term_premium: 0.008,      // 期間プレミアム 0.8%
       MC_init: 0.0104,          // 初期の限界費用基準値
-      E_init: 150.0,            // 基準為替レート
-      Unemployment_Rate: 2.5    // 日本の直近の完全失業率 (基準初期値 2.5%)
+      E_init: 150.0,            // 日本の基準為替レート (150円/$)
+      Unemployment_Rate: 2.5    // 日本の直近の完全失業率実績値 (2.5%)
     };
 
     // 2. 政策スライダーおよび構造パラメータの現在値
@@ -75,8 +75,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const dt = 0.25; // 四半期ベース
       let history = [];
 
+      // UIのT=0初期値設定からカスタム値を安全に取得してハイドレート
+      const custom_init = {
+        Y_potential: parseFloat(document.getElementById("init-gdp")?.value || INITIAL_STATE.Y_potential),
+        Balance_deposit: parseFloat(document.getElementById("init-deposit")?.value || INITIAL_STATE.Balance_deposit),
+        Balance_loan: parseFloat(document.getElementById("init-loan")?.value || INITIAL_STATE.Balance_loan),
+        Unemployment_Rate: parseFloat(document.getElementById("init-unemployment")?.value || INITIAL_STATE.Unemployment_Rate),
+        E_init: parseFloat(document.getElementById("init-fx")?.value || INITIAL_STATE.E_init),
+        tau_social: parseFloat(document.getElementById("init-social")?.value || (INITIAL_STATE.tau_social * 100)) / 100.0,
+        Gap_wage: parseFloat(document.getElementById("init-gap")?.value || (INITIAL_STATE.Gap_wage * 100)) / 100.0,
+      };
+
       // 初期値のセット
-      let state = { ...INITIAL_STATE };
+      let state = { 
+        ...INITIAL_STATE,
+        ...custom_init
+      };
 
       // 🏁 第0期 (シミュレーション開始前・基準初期状態) の計算と登録
       const init_r_policy = state.r_neutral;
@@ -700,6 +714,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         }
+
+        // ⚙️ T=0 初期値トグルのアコーディオンイベント
+        const btnToggleInitials = document.getElementById("btn-toggle-initials");
+        const initialsContent = document.getElementById("initials-content");
+        if (btnToggleInitials && initialsContent) {
+            btnToggleInitials.addEventListener("click", (e) => {
+                e.preventDefault();
+                const isOpen = initialsContent.style.display !== "none";
+                initialsContent.style.display = isOpen ? "none" : "block";
+                const arrow = btnToggleInitials.querySelector(".arrow-icon");
+                if (arrow) {
+                    arrow.textContent = isOpen ? "▼" : "▲";
+                }
+            });
+        }
+
+        // ⚙️ 初期値インプット変更時に再シミュレーションを起動
+        const initialInputs = [
+            "init-gdp", "init-deposit", "init-loan", "init-unemployment",
+            "init-fx", "init-social", "init-gap"
+        ];
+        initialInputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener("input", handleSliderUpdate);
+                input.addEventListener("change", handleSliderUpdate);
+            }
+        });
     };
 
     // 🚀 8. アプリケーション初期化起動
