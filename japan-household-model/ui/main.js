@@ -107,6 +107,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // 初期生活実感インフレ率 (マクロインフレにさらに 0.08 倍の直接為替影響を加算)
       const init_pi_living_quarter = init_pi_clamped + 0.08 * init_FX_shock * (1 - config.Self_Suff);
 
+      // 初期限界費用の一貫計算 (ハードコード MC_init を廃止し金利連動)
+      const init_MC = 0.005 * state.W_min + 0.1 * init_R_long;
+
       const init_Inc_deposit = state.Balance_deposit * (init_r_policy * 0.5) * 0.25;
       const init_Cost_loan = state.Balance_loan * (config.Loan_var * init_r_policy + (1.0 - config.Loan_var) * 0.015) * 0.25;
       const init_Gross_Income = state.W_nominal * 3.6; // 初期就業ペナルティは0
@@ -132,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
         YD: init_YD,
         YD_real: init_YD / state.P_def,
         Gap_wage: state.Gap_wage * 100,      // % (30%)
-        MC: state.MC_init,
+        MC: init_MC,
         Unemployment_Rate: state.Unemployment_Rate // 2.5%
       });
 
@@ -180,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // 期待インフレ率に、需給ギャップ感応度(0.30、クランプ幅0.25)と、転嫁率連動型コストプッシュを加えてインフレ率を算出
         const cost_push = 0.03 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
         const FX_shock = (config.E_current - state.E_init) / state.E_init;
-        const pi = 0.015 / 4 + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push + 0.04 * FX_shock * (1 - config.Self_Suff);
+        const pi = (state.pi_target / 4) + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push + 0.04 * FX_shock * (1 - config.Self_Suff);
         const pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, pi)); // 年率-5%〜15%にクランプ
 
         // ⑪ デフレーター P_t の累積更新

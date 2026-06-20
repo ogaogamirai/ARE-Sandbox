@@ -106,7 +106,7 @@ graph TD
 
 2. **インフレ率 ($\pi_t$)**
    $$\pi_t = \pi_{\text{expected}, t} + \kappa \cdot \text{clamp}(gap\_ratio_t, -0.25, 0.25) + \lambda \max\left(0, \frac{MC_t - MC_{t-1}}{MC_{t-1}}\right) \times (2.0 \alpha_{\text{pass}}) + \phi_{\text{fx}} \cdot \left( \frac{E_t - E_{\text{init}}}{E_{\text{init}}} \right) \times (1 - Self\_Suff)$$
-   - $\pi_{\text{expected}, t}$: シナリオ基準で設定される期待（予想）インフレ率（約 1.5%〜2.0% 目標）
+   - $\pi_{\text{expected}, t}$: 目標インフレ率ベース $\pi_{\text{target}} / 4$ (年率 2.0%、初期値とシミュレーション内で一貫化)
    - $\kappa = 0.10$（需給ギャップインフレ感応度。供給不足にともなうディマンド・プル圧力の表現を強めつつ、過度な振幅を抑え0.10へマイルド化）
    - $\lambda = 0.12$（限界費用インフレ感応度。コストプッシュインフレを表現。価格転嫁率 $\alpha_{\text{pass}}$ に比例。過敏な急騰を防ぐため0.12へ平滑化）
    - $\phi_{\text{fx}} = 0.16$（マクロインフレへの為替ショック感応度。輸入物価高によるコストプッシュを表現。四半期ベースで 0.04）
