@@ -152,10 +152,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // ⑦ 実質賃金指数 W_real,t の計算
         const W_real = state.W_nominal / state.P_def;
 
-        // ⑧ 総需要量 Y_demand,t の計算 (実質賃金所得効果に変更し貨幣錯覚を排除)
+        // ⑧ 総需要量 Y_demand,t の計算 (実質賃金所得効果に加え、給付付き税額控除の需要押し上げ効果0.8倍をマウント)
         const Demand_R_impact = 1.0 * (R_prev - state.R_neutral);
         const Demand_W_impact = 0.2 * ((W_real - 100.0) / 100.0);
-        const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact);
+        const Demand_ETC_impact = 0.8 * (config.ETC / Y_potential_t);
+        const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact + Demand_ETC_impact);
 
         // ⑨ 需給ギャップ率
         const gap_ratio = (Y_d - Y_s) / Y_s;

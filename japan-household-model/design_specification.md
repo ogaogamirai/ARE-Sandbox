@@ -131,9 +131,10 @@ graph TD
 総需要 $Y_{\text{demand}, t}$ は、金利上昇にともなう投資・消費抑制効果と、名目平均賃金の上昇による購買力押し上げ効果を合わせて決定されます。
 
 1. **総需要量 ($Y_{\text{demand}, t}$)**
-   $$Y_{\text{demand}, t} = Y_{\text{potential}, t} \times \max\left(0.6, 1 - \theta (R_{\text{long}, t} - R_{\text{neutral}}) + \eta \frac{W_{\text{nominal}, t} - 100}{100}\right)$$
+   $$Y_{\text{demand}, t} = Y_{\text{potential}, t} \times \max\left(0.6, 1 - \theta (R_{\text{long}, t} - R_{\text{neutral}}) + \eta \frac{W_{\text{nominal}, t} - 100}{100} + \gamma_{etc} \frac{ETC_t}{Y_{\text{potential}, t}}\right)$$
    - $\theta = 1.0$（金利の需要抑制効果。金利1%上昇で総需要が1%減少する金融引き締め効果）
    - $\eta = 0.2$（名目賃金の需要押し上げ効果。名目賃金10%上昇で総需要が2%増加）
+   - $\gamma_{etc} = 0.8$（給付付き税額控除の需要乗数効果。給付金の80%がマクロ個人消費として総需要を押し上げます）
    - $\max(0.6, \dots)$: 需要の崩壊を防ぐ下限ガード
 
 ### 2.5 賃金・格差決定動学
