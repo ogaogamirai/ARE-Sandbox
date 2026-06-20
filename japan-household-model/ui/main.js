@@ -95,8 +95,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ...custom_init
       };
 
-      // 消費税による初期デフレーターのシフト (価格上乗せ効果)
-      state.P_def = 1.0 * (1 + config.dConsumption);
+      // 消費税による初期デフレーターのシフトは行わず基準値の1.0とする (一時的な物価押し上げショックは第1期以降デフレーターに累積されます)
+      state.P_def = 1.0;
 
       // 為替ショックの算出 (t=0時点から共通で使用)
       const init_FX_shock = (config.E_current - state.E_init) / state.E_init;
@@ -106,17 +106,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 1. 社会保障負担・消費税およびETCによる初期の需給ギャップ (init_gap_ratio) の算出
       const init_Demand_Social_impact = 0.8 * (init_Gross_Income * config.dSocial / state.Y_potential);
-      const init_Demand_Consumption_impact = 1.2 * config.dConsumption;
+      const init_Demand_Consumption_impact = 0.6 * config.dConsumption;
       const init_Demand_ETC_impact = 0.8 * (config.ETC / state.Y_potential);
       const init_gap_ratio = -init_Demand_Social_impact - init_Demand_Consumption_impact + init_Demand_ETC_impact;
 
       // 🏁 第0期 (シミュレーション開始前・基準初期状態) での為替ショックおよび初期需給ギャップを考慮したマクロインフレと金利のハイドレーション
-      // マクロインフレ率への為替コストプッシュ波及 (四半期ベースで 0.04 倍) と初期需給ギャップ波及 (0.10倍)
-      const init_pi_quarter = (state.pi_target / 4) + 0.10 * init_gap_ratio + 0.04 * init_FX_shock * (1 - config.Self_Suff);
+      // マクロインフレ率への為替コストプッシュ波及 (四半期ベースで 0.04 倍)、初期需給ギャップ波及 (0.10倍)、および消費税の物価直接上乗せ効果 (dConsumption/4) を反映
+      const init_pi_quarter = (state.pi_target / 4) + 0.10 * init_gap_ratio + 0.04 * init_FX_shock * (1 - config.Self_Suff) + (config.dConsumption / 4);
       const init_pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, init_pi_quarter));
       
-      // 初期政策金利 (初期需給ギャップの金利影響 0.3倍 を適用)
-      const init_r_policy = Math.max(0.0, Math.min(0.12, state.r_neutral + 1.2 * (init_pi_clamped - (state.pi_target / 4)) + 0.3 * init_gap_ratio));
+      // 初期政策金利 (初期需給ギャップの金利影響 0.1倍 を適用し、物価上昇時の日銀利上げを優勢化)
+      const init_r_policy = Math.max(0.0, Math.min(0.12, state.r_neutral + 1.2 * (init_pi_clamped - (state.pi_target / 4)) + 0.1 * init_gap_ratio));
       const init_R_long = init_r_policy + state.term_premium;
       
       // 初期生活実感インフレ率 (マクロインフレにさらに 0.08 倍 of 直接為替影響を加算)
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const Demand_W_impact = 0.2 * ((W_real - 100.0) / 100.0);
         const Demand_ETC_impact = 0.8 * (config.ETC / Y_potential_t);
         const Demand_Social_impact = 0.8 * (Gross_Income * config.dSocial / Y_potential_t);
-        const Demand_Consumption_impact = 1.2 * config.dConsumption;
+        const Demand_Consumption_impact = 0.6 * config.dConsumption; // 需要への寄与を 0.6 倍にマイルド化 (社会保障の0.48倍と同等のバランス)
         const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact + Demand_ETC_impact - Demand_Social_impact - Demand_Consumption_impact);
 
         // ⑨ 需給ギャップ率
@@ -196,7 +196,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // 期待インフレ率に、需給ギャップ感応度(0.30、クランプ幅0.25)と、転嫁率連動型コストプッシュを加えてインフレ率を算出
         const cost_push = 0.03 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
         const FX_shock = (config.E_current - state.E_init) / state.E_init;
-        const pi = (state.pi_target / 4) + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push + 0.04 * FX_shock * (1 - config.Self_Suff);
+
+        // 消費税率変更に伴う一時的な価格押し上げ効果 (第1期から減衰しながら物価へ転嫁)
+        const tax_shock = (config.dConsumption / 4) * Math.pow(0.5, t);
+        const pi = (state.pi_target / 4) + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push + 0.04 * FX_shock * (1 - config.Self_Suff) + tax_shock;
         const pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, pi)); // 年率-5%〜15%にクランプ
 
         // ⑪ デフレーター P_t の累積更新 (次期計算用への同期のため、ループ末尾へ移動)
@@ -204,9 +207,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // ⑫ 生活実感インフレ率 (マクロインフレにさらに 0.08 倍の直接為替影響を加算)
         const pi_living = pi_clamped + 0.08 * FX_shock * (1 - config.Self_Suff);
 
-        // ⑬ テイラー・ルール (日銀の防衛的利上げ: 四半期インフレ率ベースで判定)
+        // ⑬ テイラー・ルール (日銀の防衛的利上げ: 四半期インフレ率ベースで判定、需給ギャップ感応度は 0.1 に平滑化)
         const Target_pi_quarter = state.pi_target / 4;
-        const r_policy = Math.max(0.0, Math.min(0.12, state.r_neutral + 1.2 * (pi_clamped - Target_pi_quarter) + 0.3 * gap_ratio));
+        const r_policy = Math.max(0.0, Math.min(0.12, state.r_neutral + 1.2 * (pi_clamped - Target_pi_quarter) + 0.1 * gap_ratio));
         const R_long = r_policy + state.term_premium;
 
         // ⑭ 金利の二面性 (預金受取とローン負担)

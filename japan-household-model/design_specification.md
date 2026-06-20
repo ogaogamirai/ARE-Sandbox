@@ -99,19 +99,22 @@ graph TD
    - $\max(0.5, \dots)$: 供給の崩壊を防ぐ下限ガード
 
 ### 2.2 コストプッシュ型インフレ動学
-インフレ率 $\pi_t$ は、マクロの需給ギャップと、企業の限界費用の上昇による売り手価格転嫁の２つのメカニズムから動的に決定されます。
+インフレ率 $\pi_t$ は、マクロの需給ギャップ、企業の限界費用の上昇による価格転嫁、為替変動、および消費税調整に伴う直接的な物価押し上げ効果（一時的減衰ショック）から動的に決定されます。
 
 1. **需給ギャップ率 ($gap\_ratio_t$)**
    $$gap\_ratio_t = \frac{Y_{\text{demand}, t-1} - Y_{s, t}}{Y_{s, t}}$$
 
 2. **インフレ率 ($\pi_t$)**
-   $$\pi_t = \pi_{\text{expected}, t} + \kappa \cdot \text{clamp}(gap\_ratio_t, -0.25, 0.25) + \lambda \max\left(0, \frac{MC_t - MC_{t-1}}{MC_{t-1}}\right) \times (2.0 \alpha_{\text{pass}}) + \phi_{\text{fx}} \cdot \left( \frac{E_t - E_{\text{init}}}{E_{\text{init}}} \right) \times (1 - Self\_Suff)$$
-   - $\pi_{\text{expected}, t}$: 目標インフレ率ベース $\pi_{\text{target}} / 4$ (年率 2.0%、初期値とシミュレーション内で一貫化)
-   - $\kappa = 0.10$（需給ギャップインフレ感応度。供給不足にともなうディマンド・プル圧力の表現を強めつつ、過度な振幅を抑え0.10へマイルド化）
-   - $\lambda = 0.12$（限界費用インフレ感応度。コストプッシュインフレを表現。価格転嫁率 $\alpha_{\text{pass}}$ に比例。過敏な急騰を防ぐため0.12へ平滑化）
-   - $\phi_{\text{fx}} = 0.16$（マクロインフレへの為替ショック感応度。輸入物価高によるコストプッシュを表現。四半期ベースで 0.04）
-   - $\text{clamp}(gap\_ratio_t, -0.25, 0.25)$: 深刻な供給不足時の物不足によるインフレを表現するため、クランプ上限を15%から25%に緩和。
-   - $\pi_{\text{clamped}} = \max(-0.05, \min(0.25, \pi_t))$: デフレ螺旋と超インフレ発散を防ぐための安全ガード（下限-5%、上限25%）
+   $$\pi_t = \pi_{\text{expected}, t} + \kappa \cdot \text{clamp}(gap\_ratio_t, -0.25, 0.25) + \lambda \max\left(0, \frac{MC_t - MC_{t-1}}{MC_{t-1}}\right) \times (2.0 \alpha_{\text{pass}}) + \phi_{\text{fx}} \cdot \left( \frac{E_t - E_{\text{init}}}{E_{\text{init}}} \right) \times (1 - Self\_Suff) + \text{tax\_shock}_t$$
+   
+   $$\text{tax\_shock}_t = \left(\frac{dConsumption}{4}\right) \times 0.5^t \quad (t \ge 0)$$
+   
+   - $\pi_{\text{expected}, t}$: 目標インフレ率ベース $\pi_{\text{target}} / 4$ (年率 2.0%)
+   - $\kappa = 0.10$（需給ギャップインフレ感応度）
+   - $\lambda = 0.12$（限界費用インフレ感応度）
+   - $\phi_{\text{fx}} = 0.16$（為替ショック感応度。四半期ベース 0.04）
+   - $\text{tax\_shock}_t$: 消費税率変更に伴う一時的な直接価格上乗せ効果。第1期（$t=0$）に最大（四半期ベース $dConsumption/4$、年率換算で税率変更幅そのもの）となり、その後期ごとに半減（減衰）しながら物価へ転嫁され、インフレ率への直接影響は消滅します。
+   - $\pi_{\text{clamped}} = \max(-0.05, \min(0.25, \pi_t))$: 安全ガード（下限-5%、上限25%）
 
 ### 2.3 テイラー・ルール（金融政策フィードバック）
 インフレ目標値（$\pi_{\text{target}}$）からの乖離と需給ギャップに対応して、中央銀行（日銀）が金利を引き上げる金利ショック動学です。
@@ -121,7 +124,7 @@ graph TD
    - $r_{\text{neutral}} = 0.01$（中立政策金利 1.0%）
    - $\pi_{\text{target}} = 0.02$（目標インフレ率 2.0%）
    - $\phi_{\pi} = 1.2$（インフレギャップ感応度）
-   - $\phi_y = 0.3$（需給ギャップ感応度）
+   - $\phi_y = 0.1$（需給ギャップ感応度。過度な金利振動を防ぎ、一時的物価上昇時の利上げを優勢にするため 0.1 へ平滑化）
    - $\max(0.0), \min(0.15)$: ゼロ金利制約および利上げ上限（15%）ガード
 
 2. **長期金利 ($R_{\text{long}, t}$)**
