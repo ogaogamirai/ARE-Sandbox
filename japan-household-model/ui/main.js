@@ -186,9 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const YD = Gross_Income + Inc_deposit - Cost_loan - Tax - Social_Premium + config.ETC;
         const YD_real = YD / state.P_def;
 
-        // ⑲ 大中小企業賃金格差 Gap_wage
+        // ⑲ 大中小企業賃金格差 Gap_wage の累積更新
         const dGap = 0.02 * (1 - config.alpha_pass) - 0.005 * config.dMW;
-        const Gap_wage = state.Gap_wage * (1 + dGap);
+        state.Gap_wage = state.Gap_wage * (1 + dGap);
 
         // 履歴に蓄積 (年率換算値に較正)
         history.push({
@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
           Cost_loan,                        // 兆円フロー
           YD,                               // 兆円フロー
           YD_real,                          // 兆円フロー
-          Gap_wage: Gap_wage * 100,         // %
+          Gap_wage: state.Gap_wage * 100,         // %
           MC
         });
 
