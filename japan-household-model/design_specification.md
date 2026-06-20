@@ -129,17 +129,20 @@ graph TD
    - $term\_premium = 0.008$（期間プレミアム 0.8%）
 
 ### 2.4 総需要動学
-総需要 $Y_{\text{demand}, t}$ は、金利上昇にともなう投資・消費抑制効果、名目平均賃金の上昇による購買力押し上げ効果、給付付き税額控除による消費刺激効果、および社会保険料率の変更に伴う可処分所得減少による消費抑制効果を合わせて決定されます。
+総経済需要 $Y_{\text{demand}, t}$ は、金利上昇にともなう投資・消費抑制効果、名目平均賃金の上昇による購買力押し上げ効果、給付付き税額控除による消費刺激効果、社会保障・所得税負担の変更に伴う消費抑制効果、および消費税率の変更に伴う消費抑制効果を合わせて決定されます。
 
 1. **総需要量 ($Y_{\text{demand}, t}$)**
-   $$Y_{\text{demand}, t} = Y_{\text{potential}, t} \times \max\left(0.6, 1 - \theta (R_{\text{long}, t} - R_{\text{neutral}}) + \eta \frac{W_{\text{nominal}, t} - 100}{100} + \gamma_{etc} \frac{ETC_t}{Y_{\text{potential}, t}} - \text{Demand\_Social\_impact}_t\right)$$
+   $$Y_{\text{demand}, t} = Y_{\text{potential}, t} \times \max\left(0.6, 1 - \theta (R_{\text{long}, t} - R_{\text{neutral}}) + \eta \frac{W_{\text{nominal}, t} - 100}{100} + \gamma_{etc} \frac{ETC_t}{Y_{\text{potential}, t}} - \text{Demand\_Social\_impact}_t - \text{Demand\_Consumption\_impact}_t\right)$$
    
    $$\text{Demand\_Social\_impact}_t = 0.8 \times \left( \frac{\text{Gross\_Income}_t \times \Delta \tau_{\text{social}}}{Y_{\text{potential}, t}} \right)$$
+   
+   $$\text{Demand\_Consumption\_impact}_t = 1.2 \times dConsumption$$
    
    - $\theta = 0.3$（金利の需要抑制効果。金利1%上昇で総経済需要が0.3%減少する）
    - $\eta = 0.2$（名目賃金の需要押し上げ効果。名目賃金10%上昇で総経済需要が2%増加）
    - $\gamma_{etc} = 0.8$（給付付き税額控除の需要乗数効果。給付金の80%がマクロ個人消費として総需要を押し上げる）
-   - $\text{Demand\_Social\_impact}_t$: 社会保険料の増減税にともなう需要への寄与。増税（スライダープラス）時はその80%が消費を冷やす要因として働き、減税（スライダーマイナス）時は逆に消費を刺激する要因として総経済需要を増加させます。
+   - $\text{Demand\_Social\_impact}_t$: 社会保障・所得税負担の増減に伴う需要への寄与（乗数0.8倍）。
+   - $\text{Demand\_Consumption\_impact}_t$: 消費税の税率変更に伴う需要への直接の寄与（乗数1.2倍）。
    - $\max(0.6, \dots)$: 需要の崩壊を防ぐ下限ガード
 
 ### 2.5 賃金・格差決定動学
@@ -240,15 +243,16 @@ graph TD
 - 初期の限界費用基準値 ($MC_0$): 0.015
 
 ### 3.1 初期需給ギャップとインフレ・金利の同期ハイドレーション
-初期値設定からスライダーやカスタム値をハイドレートする際、設定された初期パラメータ（特に `dSocial` および `ETC`）に由来する初期需給ギャップを第0期の時点でインフレ率および金利に反映し、第0期から第1期にかけての不連続なジャンプを解消します。
+初期値設定からスライダーやカスタム値をハイドレートする際、設定された初期パラメータ（特に `dSocial`、`dConsumption` および `ETC`）に由来する初期需給ギャップ、および消費税による初期物価スライド（$P_0 = 1.0 \times (1 + dConsumption)$）の影響を第0期の時点でインフレ率、金利、およびデフレーターに反映し、第0期から第1期にかけての不連続なジャンプを解消します。
 
 1. **初期労働所得 ($Gross\_Income_{init}$)**
    $$Gross\_Income_{init} = W_{\text{nominal}, 0} \times 3.6$$
 
 2. **初期需給ギャップ比率 ($init\_gap\_ratio$)**
    $$init\_Demand\_Social\_impact = 0.8 \times \left( \frac{Gross\_Income_{init} \times dSocial}{Y_{\text{potential}, 0}} \right)$$
+   $$init\_Demand\_Consumption\_impact = 1.2 \times dConsumption$$
    $$init\_Demand\_ETC\_impact = 0.8 \times \left( \frac{ETC}{Y_{\text{potential}, 0}} \right)$$
-   $$init\_gap\_ratio = - init\_Demand\_Social\_impact + init\_Demand\_ETC\_impact$$
+   $$init\_gap\_ratio = - init\_Demand\_Social\_impact - init\_Demand\_Consumption\_impact + init\_Demand\_ETC\_impact$$
 
 3. **初期インフレ率 ($\pi_{0}$)**
    $$\pi_0 = \left(\frac{\pi_{\text{target}}}{4}\right) + 0.10 \times init\_gap\_ratio + 0.04 \times init\_FX\_shock \times (1 - Self\_Suff)$$

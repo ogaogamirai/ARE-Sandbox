@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alpha_pass: 0.50,         // 中小企業価格転嫁率 (0.0 - 1.0)
       dMW: 0.03,                // 最低賃金引き上げ率 (年率)
       dSocial: 0.0,             // 社会保険料率調整
+      dConsumption: 0.0,        // 消費税率調整 (新設)
       ETC: 0.0,                 // 給付付き税額控除 (兆円規模)
       G_reskill: 0.0,           // リスキリング支援 (兆円規模)
       Loan_var: 0.70,           // 変動金利シェア (70%)
@@ -41,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sliderPass: document.getElementById("slider-pass"),
         sliderMw: document.getElementById("slider-mw"),
         sliderSocial: document.getElementById("slider-social"),
+        sliderConsumption: document.getElementById("slider-consumption"),
         sliderEtc: document.getElementById("slider-etc"),
         sliderReskill: document.getElementById("slider-reskill"),
         sliderLoan: document.getElementById("slider-loan"),
@@ -49,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         valPass: document.getElementById("val-pass"),
         valMw: document.getElementById("val-mw"),
         valSocial: document.getElementById("val-social"),
+        valConsumption: document.getElementById("val-consumption"),
         valEtc: document.getElementById("val-etc"),
         valReskill: document.getElementById("val-reskill"),
         valLoan: document.getElementById("val-loan"),
@@ -92,16 +95,20 @@ document.addEventListener("DOMContentLoaded", () => {
         ...custom_init
       };
 
+      // 消費税による初期デフレーターのシフト (価格上乗せ効果)
+      state.P_def = 1.0 * (1 + config.dConsumption);
+
       // 為替ショックの算出 (t=0時点から共通で使用)
       const init_FX_shock = (config.E_current - state.E_init) / state.E_init;
       
       // 初期労働所得 (初期就業ペナルティ=0)
       const init_Gross_Income = state.W_nominal * 3.6;
 
-      // 1. 社会保険料およびETCによる初期の需給ギャップ (init_gap_ratio) の算出
+      // 1. 社会保障負担・消費税およびETCによる初期の需給ギャップ (init_gap_ratio) の算出
       const init_Demand_Social_impact = 0.8 * (init_Gross_Income * config.dSocial / state.Y_potential);
+      const init_Demand_Consumption_impact = 1.2 * config.dConsumption;
       const init_Demand_ETC_impact = 0.8 * (config.ETC / state.Y_potential);
-      const init_gap_ratio = -init_Demand_Social_impact + init_Demand_ETC_impact;
+      const init_gap_ratio = -init_Demand_Social_impact - init_Demand_Consumption_impact + init_Demand_ETC_impact;
 
       // 🏁 第0期 (シミュレーション開始前・基準初期状態) での為替ショックおよび初期需給ギャップを考慮したマクロインフレと金利のハイドレーション
       // マクロインフレ率への為替コストプッシュ波及 (四半期ベースで 0.04 倍) と初期需給ギャップ波及 (0.10倍)
@@ -171,12 +178,13 @@ document.addEventListener("DOMContentLoaded", () => {
         // ⑦ 実質賃金指数 W_real,t の計算
         const W_real = state.W_nominal / state.P_def;
 
-        // ⑧ 総需要量 Y_demand,t の計算 (実質賃金所得効果に加え、給付付き税額控除の需要押し上げ効果0.8倍、および社会保険料の需要影響を適用)
+        // ⑧ 総需要量 Y_demand,t の計算 (実質賃金所得効果に加え、給付付き税額控除、社会保障負担、および消費税の需要影響を適用)
         const Demand_R_impact = 0.3 * (R_prev - state.R_neutral);
         const Demand_W_impact = 0.2 * ((W_real - 100.0) / 100.0);
         const Demand_ETC_impact = 0.8 * (config.ETC / Y_potential_t);
         const Demand_Social_impact = 0.8 * (Gross_Income * config.dSocial / Y_potential_t);
-        const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact + Demand_ETC_impact - Demand_Social_impact);
+        const Demand_Consumption_impact = 1.2 * config.dConsumption;
+        const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact + Demand_ETC_impact - Demand_Social_impact - Demand_Consumption_impact);
 
         // ⑨ 需給ギャップ率
         const gap_ratio = (Y_d - Y_s) / Y_s;
@@ -677,6 +685,7 @@ document.addEventListener("DOMContentLoaded", () => {
         config.alpha_pass = parseFloat(elements.sliderPass.value);
         config.dMW = parseFloat(elements.sliderMw.value);
         config.dSocial = parseFloat(elements.sliderSocial.value);
+        config.dConsumption = parseFloat(elements.sliderConsumption.value);
         config.ETC = parseFloat(elements.sliderEtc.value);
         config.G_reskill = parseFloat(elements.sliderReskill.value);
         config.Loan_var = parseFloat(elements.sliderLoan.value);
@@ -707,6 +716,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const socialVal = config.dSocial;
         elements.valSocial.textContent = `${socialVal >= 0 ? '+' : ''}${(socialVal * 100).toFixed(1)}%`;
         
+        const consumptionVal = config.dConsumption;
+        elements.valConsumption.textContent = `${consumptionVal >= 0 ? '+' : ''}${(consumptionVal * 100).toFixed(1)}%`;
+        
         elements.valEtc.textContent = `${config.ETC} 兆円`;
         elements.valReskill.textContent = `${config.G_reskill} 兆円`;
         elements.valLoan.textContent = `${Math.round(config.Loan_var * 100)}%`;
@@ -724,6 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
         url.searchParams.set("pass", document.getElementById("slider-pass").value);
         url.searchParams.set("mw", document.getElementById("slider-mw").value);
         url.searchParams.set("social", document.getElementById("slider-social").value);
+        url.searchParams.set("consumption", document.getElementById("slider-consumption").value);
         url.searchParams.set("etc", document.getElementById("slider-etc").value);
         url.searchParams.set("reskill", document.getElementById("slider-reskill").value);
         url.searchParams.set("loan", document.getElementById("slider-loan").value);
@@ -754,6 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
         restoreVal("pass", "slider-pass");
         restoreVal("mw", "slider-mw");
         restoreVal("social", "slider-social");
+        restoreVal("consumption", "slider-consumption");
         restoreVal("etc", "slider-etc");
         restoreVal("reskill", "slider-reskill");
         restoreVal("loan", "slider-loan");
@@ -771,8 +785,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const setupEventListeners = () => {
         const controls = [
             elements.scenario, elements.sliderPass, elements.sliderMw,
-            elements.sliderSocial, elements.sliderEtc, elements.sliderReskill,
-            elements.sliderLoan
+            elements.sliderSocial, elements.sliderConsumption, elements.sliderEtc,
+            elements.sliderReskill, elements.sliderLoan
         ];
         
         controls.forEach(control => {

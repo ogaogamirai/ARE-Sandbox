@@ -102,16 +102,25 @@
                     <h3>社会保障・税制</h3>
                     <div class="control-group">
                         <div class="label-val">
-                            <label for="slider-social">社会保険料率調整</label>
+                            <label for="slider-social">社会保障・所得税負担調整</label>
                             <span id="val-social" class="badge">±0.0%</span>
                         </div>
                         <input type="range" id="slider-social" min="-0.05" max="0.05" step="0.005" value="0">
-                        <div class="range-hint">現役世代の負担を直接加減算します</div>
+                        <div class="range-hint">所得税や社会保険料などの直接的な天引きを調整します</div>
                     </div>
 
                     <div class="control-group">
                         <div class="label-val">
-                            <label for="slider-etc">給付付き税額控除規模</label>
+                            <label for="slider-consumption">消費税率調整 (基準 10%)</label>
+                            <span id="val-consumption" class="badge">±0.0%</span>
+                        </div>
+                        <input type="range" id="slider-consumption" min="-0.10" max="0.10" step="0.005" value="0">
+                        <div class="range-hint">消費税の税率変更 (廃止-10%〜増税+10%)</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="label-val">
+                            <label for="slider-etc">給付付き所得税額控除 (ETC)</label>
                             <span id="val-etc" class="badge">0 兆円</span>
                         </div>
                         <input type="range" id="slider-etc" min="0" max="10" step="0.5" value="0">
@@ -237,6 +246,6 @@
     <!-- 凡例ホバーポップアップ解説用コンテナ -->
     <div id="legend-tooltip" class="legend-tooltip" style="display: none; position: absolute; z-index: 1000;"></div>
 
-    <script src="main.js?v=1.6.7"></script>
+    <script src="main.js?v=1.6.8"></script>
 </body>
 </html>
