@@ -101,6 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const init_Tax = init_Gross_Income * 0.10;
       const init_Social = init_Gross_Income * (0.15 + config.dSocial);
       const init_YD = init_Gross_Income + init_Inc_deposit - init_Cost_loan - init_Tax - init_Social + config.ETC;
+      const init_FX_shock = (config.E_current - state.E_init) / state.E_init;
+      const init_pi_living = ((state.pi_target / 4) + 0.12 * init_FX_shock * (1 - config.Self_Suff)) * 4 * 100;
 
       history.push({
         step: 0,                            // 開始時点 (第0期)
@@ -109,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         Y_d: state.Y_potential,
         gap_ratio: 0.0,
         pi_clamped: (state.pi_target) * 100, // 年率 % (2.0%)
-        pi_living: (state.pi_target) * 100,  // 年率 % (2.0%)
+        pi_living: init_pi_living,           // シナリオ為替連動初期値
         r_policy: init_r_policy * 100,       // 年率 % (1.0%)
         R_long: init_R_long * 100,           // 年率 % (1.8%)
         W_nominal: state.W_nominal,          // 100
@@ -153,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const W_real = state.W_nominal / state.P_def;
 
         // ⑧ 総需要量 Y_demand,t の計算 (実質賃金所得効果に加え、給付付き税額控除の需要押し上げ効果0.8倍をマウント)
-        const Demand_R_impact = 0.6 * (R_prev - state.R_neutral);
+        const Demand_R_impact = 0.3 * (R_prev - state.R_neutral);
         const Demand_W_impact = 0.2 * ((W_real - 100.0) / 100.0);
         const Demand_ETC_impact = 0.8 * (config.ETC / Y_potential_t);
         const Y_d = Y_potential_t * Math.max(0.6, 1.0 - Demand_R_impact + Demand_W_impact + Demand_ETC_impact);
@@ -166,8 +168,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const MC_growth = MC_prev > 0 ? (MC - MC_prev) / MC_prev : 0;
         
         // 期待インフレ率に、需給ギャップ感応度(0.30、クランプ幅0.25)と、転嫁率連動型コストプッシュを加えてインフレ率を算出
-        const cost_push = 0.06 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
-        const pi = 0.015 / 4 + 0.20 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push;
+        const cost_push = 0.03 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
+        const pi = 0.015 / 4 + 0.10 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push;
         const pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, pi)); // 年率-5%〜15%にクランプ
 
         // ⑪ デフレーター P_t の累積更新
