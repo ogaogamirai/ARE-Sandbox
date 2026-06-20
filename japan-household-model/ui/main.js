@@ -515,15 +515,31 @@ document.addEventListener("DOMContentLoaded", () => {
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.setAttribute("href", url);
+        link.href = url;
         
-        // シナリオ名を取得してファイル名に反映
-        const scenario = elements.scenario.value;
-        link.setAttribute("download", `japan_household_simulation_${scenario}.csv`);
-        link.style.visibility = 'hidden';
+        // シナリオ名を取得
+        const scenario = elements.scenario ? elements.scenario.value : "default";
+        
+        // タイムスタンプの生成 (YYYYMMDD_HHMMSS)
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const date = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        const timestamp = `${year}${month}${date}_${hours}${minutes}${seconds}`;
+        
+        link.download = `japan_household_simulation_${scenario}_${timestamp}.csv`;
+        link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        
+        // 非同期処理でクリーンアップを行い、ブラウザ処理を待つ
+        setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }, 100);
     };
 
     // 🔄 6. UI同期・更新処理
@@ -582,9 +598,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (elements.btnExport) {
-            elements.btnExport.addEventListener("click", () => {
-                const history = runSimulation();
-                exportToCSV(history);
+            elements.btnExport.addEventListener("click", (e) => {
+                e.preventDefault();
+                console.log("CSV Export button clicked.");
+                try {
+                    const history = runSimulation();
+                    exportToCSV(history);
+                } catch (error) {
+                    console.error("Failed to export CSV:", error);
+                }
             });
         }
     };
