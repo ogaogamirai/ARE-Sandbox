@@ -148,8 +148,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const MC_prev = history[t].MC;
         const MC_growth = MC_prev > 0 ? (MC - MC_prev) / MC_prev : 0;
         
-        // 期待インフレ率を四半期換算し、コストプッシュ(λ)の伝播を0.25で調整
-        const pi = 0.015 / 4 + 0.15 * Math.max(-0.15, Math.min(0.15, gap_ratio)) + 0.1 * Math.max(0, MC_growth);
+        // 期待インフレ率に、需給ギャップ感応度(0.30、クランプ幅0.25)と、転嫁率連動型コストプッシュを加えてインフレ率を算出
+        const cost_push = 0.1 * Math.max(0, MC_growth) * (config.alpha_pass * 2.0); // 基準値0.5で従来と同等
+        const pi = 0.015 / 4 + 0.30 * Math.max(-0.25, Math.min(0.25, gap_ratio)) + cost_push;
         const pi_clamped = Math.max(-0.05 / 4, Math.min(0.15 / 4, pi)); // 年率-5%〜15%にクランプ
 
         // ⑪ デフレーター P_t の累積更新

@@ -105,10 +105,11 @@ graph TD
    $$gap\_ratio_t = \frac{Y_{\text{demand}, t-1} - Y_{s, t}}{Y_{s, t}}$$
 
 2. **インフレ率 ($\pi_t$)**
-   $$\pi_t = \pi_{\text{expected}, t} + \kappa \cdot \text{clamp}(gap\_ratio_t, -0.15, 0.15) + \lambda \max\left(0, \frac{MC_t - MC_{t-1}}{MC_{t-1}}\right)$$
+   $$\pi_t = \pi_{\text{expected}, t} + \kappa \cdot \text{clamp}(gap\_ratio_t, -0.25, 0.25) + \lambda \max\left(0, \frac{MC_t - MC_{t-1}}{MC_{t-1}}\right) \times (2.0 \alpha_{\text{pass}})$$
    - $\pi_{\text{expected}, t}$: シナリオ基準で設定される期待（予想）インフレ率（約 1.5%〜2.0% 目標）
-   - $\kappa = 0.15$（需給ギャップインフレ感応度）
-   - $\lambda = 0.4$（限界費用インフレ感応度。コストプッシュインフレを表現）
+   - $\kappa = 0.30$（需給ギャップインフレ感応度。供給不足にともなうディマンド・プル圧力の表現を強めるため、従来の0.15から0.30へ引き上げ）
+   - $\lambda = 0.4$（限界費用インフレ感応度。コストプッシュインフレを表現。価格転嫁率 $\alpha_{\text{pass}}$ に比例し、企業がコストを顧客にどれだけ転嫁できるかを連動。基準値0.5のときに従来と同等）
+   - $\text{clamp}(gap\_ratio_t, -0.25, 0.25)$: 深刻な供給不足時の物不足によるインフレを表現するため、クランプ上限を15%から25%に緩和。
    - $\pi_{\text{clamped}} = \max(-0.05, \min(0.25, \pi_t))$: デフレ螺旋と超インフレ発散を防ぐための安全ガード（下限-5%、上限25%）
 
 ### 2.3 テイラー・ルール（金融政策フィードバック）
