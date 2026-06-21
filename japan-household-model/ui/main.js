@@ -13,10 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
       Y_potential: 600.0,       // 日本の潜在GDP基準値 (約600兆円)
       W_min: 1.0,               // 基準最低賃金指数 (初期値1.0)
       P_def: 1.0,               // 価格デフレーター初期値
-      R_neutral: 0.015,         // 中立長期金利 1.5% (年率)
+      R_neutral: 0.026,         // 中立長期金利 2.6% (年率)
       r_neutral: 0.010,         // 中立政策金利 1.0% (年率)
       pi_target: 0.020,         // 年間目標インフレ率 2.0%
-      term_premium: 0.008,      // 期間プレミアム 0.8%
+      term_premium: 0.016,      // 期間プレミアム 1.6%
       MC_init: 0.0104,          // 初期の限界費用基準値
       E_init: 150.0,            // 日本の基準為替レート (150円/$)
       Unemployment_Rate: 2.5    // 日本の直近の完全失業率実績値 (2.5%)

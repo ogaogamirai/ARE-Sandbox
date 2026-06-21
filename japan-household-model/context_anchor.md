@@ -1,11 +1,11 @@
 # Context Anchor: Japan Household Model (日本生活・雇用影響モデル)
 
 ## 📌 1. Latest Status & Release Trace (最新ステータスとリリース証跡)
-- **Current Phase**: Phase 27: 全パラメータ解説の README ドキュメンテーションと GitHub 同期 - 完了 ⭐
-  - サイドバーから操作できる全8つのパラメータについて、その役割、設定範囲、単位、デフォルト値、主要指標への影響、使用方法を `README.md` に表形式で網羅・ドキュメント化。
-  - ローカルリポジトリでコミットし、`git push` によって GitHub リポジトリ（`main` ブランチ）への同期・保存を完了。
-- **Latest Version / Cache Buster**: `v=1.6.9` (design_specification.md にも同期)
-- **Latest Commit**: `7c97746866a10634f4fe156cde9c54940bbd6004` (docs: format context_anchor.md in compliance with Trinity Forge Protocol for Phase 27)
+- **Current Phase**: Phase 28: 長期金利の初期値・中立値および期間プレミアムの直近レート（2.6%）への較正 - 完了 ⭐
+  - 長期金利のデフォルト初期値を直近利回りに整合させるため、`R_neutral` を 1.5% ➔ 2.6%、`term_premium` を 0.8% ➔ 1.6% に引き上げ、初期の長期金利が 2.6% になるよう較正。
+  - 設計仕様書 `design_specification.md` の数式・定数の記述も同期更新。キャッシュバスターを `v=1.7.0` へインクリメント。
+- **Latest Version / Cache Buster**: `v=1.7.0` (design_specification.md にも同期)
+- **Latest Commit**: 89b2c31fdb0a43f6f248fe8c7539bc9a7f7a7840
 - **Deployment URL**: [JAPAN-A_Living (GitHub Pages)](https://ogaogamirai.github.io/ARE-Sandbox/japan-household-model/ui/index.html)
 
 ## 🌐 2. Dependency Topology (依存関係トポロジー)
@@ -22,7 +22,7 @@
 - **Input Variables (from Macro Core)**:
   - 物価インフレ率 $\pi_t$ [初期値: 0.01] (年率・四半期換算など)
   - 政策金利 $r_t$ [初期値: 0.0025]
-  - 長期金利 $R_t$ [初期値: 0.008]
+  - 長期金利 $R_t$ [初期値: 0.026]
   - GDP成長率 $g_{real, t}$ [初期値: 0.01]
   - 名目GDP $Y_t$ [初期値: 600.0]
 - **Output Living Indicators**:
@@ -44,10 +44,10 @@
 ### 過去エポックの完了済み (Context-GC 要約済)
 - [x] **Phase 1〜20: 基本動学モデルの実装と可視化**:
   - UIの基礎設計、Chart.js を用いた2軸可視化、為替コストプッシュ、期待インフレ率、給付付き所得税額控除、ローン金利等、マクロ変数から家計への波及因果パス構築。
-- [x] **Phase 21〜26: 数理モデルの較正とバグ修正**:
-  - 期待インフレ率の不整合解消、就業調整ペナルティの感応度較正、賃金・物価・最賃改定の同期タイミング調整（U字くぼみバグの解消）、消費税スライダーの新設、消費税の一時的物価ショック（減衰モデル）への修正。
-- [x] **Phase 27: ドキュメンテーションと同期**:
-  - 全パラメータ（8種）の定義、影響先指標、数理的役割を表形式で `README.md` に追記。GitHub Pages へのデプロイ完了。
+- [x] **Phase 21〜27: 数理モデルの較正、バグ修正とドキュメンテーション**:
+  - 期待インフレ率の不整合解消、就業調整ペナルティの感応度較正、賃金・物価・最賃改定の同期タイミング調整（U字くぼみバグの解消）、消費税スライダーの新設、消費税の一時的物価ショック（減衰モデル）への修正、パラメータ解説の README 追記。
+- [x] **Phase 28: 長期金利のデフォルト初期値・中立値の 2.6% への較正**:
+  - `R_neutral` を 2.6%、`term_premium` を 1.6% に引き上げ、初期の長期金利が 2.6% になるよう較正。
 
 ### 次期マイルストーン
-- [ ] **Phase 28**: (次の実装指示に応じて設定)
+- [ ] **Phase 29**: (次の実装指示に応じて設定)
