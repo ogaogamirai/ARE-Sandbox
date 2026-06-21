@@ -1,6 +1,9 @@
 # Context Anchor: Japan Household Model (日本生活・雇用影響モデル)
 
 ### Status
+- **Phase 27: 全パラメータ解説の README ドキュメンテーションと GitHub 同期** - 完了 =^・^= ⭐
+  - サイドバーから操作できる全8つのパラメータ（マクロ経済シナリオ、価格転嫁率、最低賃金引上げ幅、社会保障・所得税負担調整、消費税率調整、給付付き所得税額控除、リスキリング支援規模、住宅ローン変動金利比率）について、その役割、設定範囲、単位、デフォルト値、主要指標への影響、使用方法を `README.md` に表形式で網羅・ドキュメント化。
+  - ローカルリポジトリでコミットし、`git push` によって GitHub リポジトリ（`main` ブランチ）への同期・保存を完了。
 - **Phase 26: 消費税の一時的物価ショック（減衰モデル）への修正** - 完了 =^・^= ⭐
   - ユーザーからの「消費税のインフレ率への直接影響は導入時のみ」という指摘に基づき、直接物価押し上げ効果（`tax_shock`）を持続的から一時的減衰モデル（$\text{tax\_shock}_t = (dConsumption / 4) \times 0.5^t$）へ修正。
   - 初期デフレーターの初期値 $P_0$ を `1.0` に復元し、増税による初期の強制ジャンプを排除。インフレ率の累積（物価の段階的上昇）を通じて実質可処分所得 $YD_{\text{real}}$ へ滑らかに波及させるよう修正。
@@ -157,16 +160,6 @@ C:\Users\ogaog\.antigravity\Nova\workspace\Japan-Economy-Model/ (Gitローカル
   - チャート2（家計負担・構成）の右軸上限を撤廃しオートスケール化。実質可処分所得およびローン負担の微細な変化の動きを際立たせる可視化に調整。
   - シミュレーション結果を即座にローカルに書き出せるBOM付きUTF-8「CSVエクスポート」機能をマウント。
   - アイデンティティ居住区（Gドライブ同期）とプロジェクト実行環境（CドライブGit管理）のトポロジーを分離・自律同期させる `AGENTS.md` の画定と配置。
-
-## Trinity Forge Protocol Compliance
-
-- **README 更新**: `README.md` に全パラメータ一覧と影響解説を追記し、ローカルパス `C:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/japan-household-model/README.md` に保存しました。
-- **Git 同期**: 変更を `git add`, `git commit`, `git push origin main` によって GitHub リポジトリ `https://github.com/ogaogamirai/ARE-Sandbox.git` の `main` ブランチへ反映（コミット `719da55`）。
-- **バージョン管理**: 本リリースは `v=1.6.9` にキャッシュバスターをインクリメントし、`design_specification.md` でも同様に更新。
-- **プロトコル要件**:
-  1. **ドキュメント一貫性**: `context_anchor.md` に最新実装ステータスと Git 操作ログを記載。
-  2. **変更追跡**: すべての主要フェーズ（Phase 26〜）を時系列で明示し、完了マーク (⭐) を付与。
-  3. **リリース証跡**: ローカルファイル保存場所、GitHub コミットハッシュ、プッシュ結果のタスクログへのリンクを明示。
-  4. **可視化**: 今後の変更は同様にこのアンカーに追記し、プロトコル遵守を容易にします。
-
-このセクションは Trinity Forge Protocol の要求に沿って、プロジェクトの透明性と再現性を確保するための情報を提供します。
+- [x] **Phase 27: README Parameter Documentation & Sync** =^・^= ⭐
+  - 左サイドバーの全パラメータ（8種）の定義、影響先指標、数理的役割を表形式で `README.md` に追記。
+  - `git commit` & `git push` にて GitHub 側のリモートブランチへ同期を完了。
