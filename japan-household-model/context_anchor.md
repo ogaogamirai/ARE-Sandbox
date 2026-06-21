@@ -157,3 +157,16 @@ C:\Users\ogaog\.antigravity\Nova\workspace\Japan-Economy-Model/ (Gitローカル
   - チャート2（家計負担・構成）の右軸上限を撤廃しオートスケール化。実質可処分所得およびローン負担の微細な変化の動きを際立たせる可視化に調整。
   - シミュレーション結果を即座にローカルに書き出せるBOM付きUTF-8「CSVエクスポート」機能をマウント。
   - アイデンティティ居住区（Gドライブ同期）とプロジェクト実行環境（CドライブGit管理）のトポロジーを分離・自律同期させる `AGENTS.md` の画定と配置。
+
+## Trinity Forge Protocol Compliance
+
+- **README 更新**: `README.md` に全パラメータ一覧と影響解説を追記し、ローカルパス `C:/Users/ogaog/.antigravity/Nova/workspace/Japan-Economy-Model/japan-household-model/README.md` に保存しました。
+- **Git 同期**: 変更を `git add`, `git commit`, `git push origin main` によって GitHub リポジトリ `https://github.com/ogaogamirai/ARE-Sandbox.git` の `main` ブランチへ反映（コミット `719da55`）。
+- **バージョン管理**: 本リリースは `v=1.6.9` にキャッシュバスターをインクリメントし、`design_specification.md` でも同様に更新。
+- **プロトコル要件**:
+  1. **ドキュメント一貫性**: `context_anchor.md` に最新実装ステータスと Git 操作ログを記載。
+  2. **変更追跡**: すべての主要フェーズ（Phase 26〜）を時系列で明示し、完了マーク (⭐) を付与。
+  3. **リリース証跡**: ローカルファイル保存場所、GitHub コミットハッシュ、プッシュ結果のタスクログへのリンクを明示。
+  4. **可視化**: 今後の変更は同様にこのアンカーに追記し、プロトコル遵守を容易にします。
+
+このセクションは Trinity Forge Protocol の要求に沿って、プロジェクトの透明性と再現性を確保するための情報を提供します。
